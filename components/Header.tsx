@@ -19,7 +19,7 @@ export default function Header() {
   };
 
   return (
-    <header className="flex h-[56px] rounded-full py-4 my-4 mx-4 backdrop-blur-none bg-neutral-50 shadow-md shrink-0 z-50">
+    <header className="fixed left-4 right-4 flex h-[56px] rounded-full py-4 my-4 backdrop-blur-none bg-neutral-50 shadow-md shrink-0 z-50">
       <div className="flex justify-between items-center w-full">
         {/* Logo */}
         <div>

@@ -67,7 +67,7 @@ export default function LoginPage() {
         <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl">
           {/* Logo */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-[#FF9B51] bg-clip-text text-transparent">
               TidRod
             </h1>
             <p className="text-neutral-400 mt-2">
@@ -85,7 +85,7 @@ export default function LoginPage() {
               }}
               className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${
                 isLogin
-                  ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg"
+                  ? "bg-[#FF9B51] text-white shadow-lg"
                   : "text-neutral-400 hover:text-white"
               }`}
             >
@@ -99,7 +99,7 @@ export default function LoginPage() {
               }}
               className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${
                 !isLogin
-                  ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg"
+                  ? "bg-[#FF9B51] text-white shadow-lg"
                   : "text-neutral-400 hover:text-white"
               }`}
             >
@@ -172,9 +172,9 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
+              className="w-full py-3.5 px-4 rounded-xl bg-[#FF9B51] text-white hover:text-[#FF9B51] font-semibold shadow-lg shadow-[#FF9B51]/25 hover:shadow-purple-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
             >
-              <span className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <span className="relative flex items-center justify-center gap-2">
                 {isLoading ? (
                   <>
