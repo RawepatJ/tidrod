@@ -10,6 +10,7 @@ import authRoutes from './routes/auth';
 import tripRoutes from './routes/trips';
 import markerRoutes from './routes/markers';
 import messageRoutes from './routes/messages';
+import userRoutes from './routes/users';
 
 dotenv.config();
 
@@ -48,6 +49,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/trips', tripRoutes);
 app.use('/api/markers', markerRoutes);
 app.use('/api/trips', messageRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {
