@@ -2,10 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { loginUser, registerUser, setToken } from "@/lib/api";
+import { loginUser, registerUser } from "@/lib/api";
+import { useSession } from "@/components/SessionProvider";
+import { useToast } from "@/components/Toast";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useSession();
+  const { addToast } = useToast();
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +26,8 @@ export default function LoginPage() {
     try {
       if (isLogin) {
         const data = await loginUser(email, password);
-        setToken(data.token);
+        login(data.token);
+        addToast('Welcome back! 👋', 'success');
         router.push("/home");
       } else {
         if (!name.trim()) {
@@ -31,11 +36,14 @@ export default function LoginPage() {
           return;
         }
         const data = await registerUser(name, email, password);
-        setToken(data.token);
+        login(data.token);
+        addToast('Account created successfully! 🎉 Welcome to TidRod!', 'success', 5000);
         router.push("/home");
       }
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred");
+      const msg = err.message || "An unexpected error occurred";
+      setError(msg);
+      addToast(msg, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -145,9 +153,7 @@ export default function LoginPage() {
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-[#BFC9D1]/50 focus:outline-none focus:ring-2 focus:ring-[#FF9B51]/50 focus:border-[#FF9B51]/50 transition-all"
               />
               {!isLogin && (
-                <p className="text-xs text-[#BFC9D1]/50 mt-1">
-                  Minimum 8 characters
-                </p>
+                <p className="text-xs text-[#BFC9D1]/50 mt-1">Minimum 8 characters</p>
               )}
             </div>
 
@@ -160,22 +166,13 @@ export default function LoginPage() {
               <span className="relative flex items-center justify-center gap-2">
                 {isLoading ? (
                   <>
-                    <svg
-                      className="animate-spin h-5 w-5"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
                     Processing...
                   </>
-                ) : isLogin ? (
-                  "Sign In"
-                ) : (
-                  "Create Account"
-                )}
+                ) : isLogin ? "Sign In" : "Create Account"}
               </span>
             </button>
           </form>
@@ -185,22 +182,14 @@ export default function LoginPage() {
             {isLogin ? (
               <p>
                 Don&apos;t have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => { setIsLogin(false); setError(null); }}
-                  className="text-[#FF9B51] hover:text-[#e8893f] font-medium"
-                >
+                <button type="button" onClick={() => { setIsLogin(false); setError(null); }} className="text-[#FF9B51] hover:text-[#e8893f] font-medium">
                   Sign up
                 </button>
               </p>
             ) : (
               <p>
                 Already have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => { setIsLogin(true); setError(null); }}
-                  className="text-[#FF9B51] hover:text-[#e8893f] font-medium"
-                >
+                <button type="button" onClick={() => { setIsLogin(true); setError(null); }} className="text-[#FF9B51] hover:text-[#e8893f] font-medium">
                   Sign in
                 </button>
               </p>
