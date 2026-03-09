@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import Header from "../components/Header";
+import { ToastProvider } from "../components/Toast";
+import { SessionProvider } from "../components/SessionProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,10 +53,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${anakotmai.className} antialiased min-h-screen flex flex-col`}
       >
-        <div className={'font-main flex flex-col h-screen'}>
-          <Header />
-          {children}
-        </div>
+        <SessionProvider>
+          <ToastProvider>
+            <div className={'font-main flex flex-col h-screen'}>
+              <Header />
+              {children}
+            </div>
+          </ToastProvider>
+        </SessionProvider>
       </body>
     </html>
   );
