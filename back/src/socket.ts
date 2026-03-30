@@ -32,6 +32,7 @@ export function setupSocket(httpServer: HttpServer): Server {
             next(new Error('Invalid token'));
         }
     });
+    
 
     io.on('connection', (socket) => {
         const user = (socket as any).user;
