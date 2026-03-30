@@ -1,11 +1,11 @@
-import pool from '../db';
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load env vars
+// Load env vars BEFORE importing anything that uses them
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 async function makeAdmin() {
+    const { default: pool } = await import('../db');
     const email = process.argv[2];
 
     if (!email) {
