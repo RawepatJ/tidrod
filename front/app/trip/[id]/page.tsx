@@ -8,6 +8,8 @@ import { getTrip, getToken, getUser, deleteTrip } from '@/lib/api';
 import Chat from '@/components/Chat';
 import { SkeletonTripDetail } from '@/components/Skeleton';
 import { useToast } from '@/components/Toast';
+import { ShieldAlert } from 'lucide-react';
+import ReportModal from '@/components/ReportModal';
 
 const MapComponent = dynamic(() => import('@/components/Map'), {
   ssr: false,
@@ -40,6 +42,7 @@ export default function TripDetailPage() {
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [hasJoined, setHasJoined] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [reportTripId, setReportTripId] = useState<string | null>(null);
   const user = getUser();
   const { addToast } = useToast();
 
@@ -141,16 +144,27 @@ export default function TripDetailPage() {
                   </div>
                 </div>
 
-                {/* Delete Button (Only for Author) */}
-                {user?.id === trip.author_id && (
+                <div className="flex items-center gap-2">
+                  {/* Report Button */}
                   <button
-                    onClick={handleDeleteTrip}
-                    disabled={isDeleting}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium border border-red-100 disabled:opacity-50"
+                    onClick={() => setReportTripId(trip.id)}
+                    className="flex items-center justify-center p-2 text-red-500 border border-red-100 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                    title="Report Trip"
                   >
-                    🗑️ {isDeleting ? 'Deleting...' : 'Delete Trip'}
+                    <ShieldAlert size={18} />
                   </button>
-                )}
+
+                  {/* Delete Button (Only for Author) */}
+                  {user?.id === trip.author_id && (
+                    <button
+                      onClick={handleDeleteTrip}
+                      disabled={isDeleting}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium border border-red-100 disabled:opacity-50"
+                    >
+                      🗑️ {isDeleting ? 'Deleting...' : 'Delete Trip'}
+                    </button>
+                  )}
+                </div>
               </div>
 
               {trip.description && (
@@ -250,6 +264,14 @@ export default function TripDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={!!reportTripId}
+        onClose={() => setReportTripId(null)}
+        targetType="TRIP"
+        targetId={reportTripId || ''}
+      />
     </main>
   );
 }

@@ -36,6 +36,17 @@ export async function initDatabase(): Promise<void> {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS reports (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        reporter_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        target_type VARCHAR(50) NOT NULL,
+        target_id UUID NOT NULL,
+        reason VARCHAR(255) NOT NULL,
+        description TEXT,
+        status VARCHAR(50) DEFAULT 'PENDING',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+
       CREATE INDEX IF NOT EXISTS idx_trips_location ON trips (latitude, longitude);
       CREATE INDEX IF NOT EXISTS idx_messages_trip ON messages (trip_id, created_at);
       CREATE INDEX IF NOT EXISTS idx_trip_photos_trip ON trip_photos (trip_id);

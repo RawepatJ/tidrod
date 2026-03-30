@@ -7,6 +7,8 @@ import Sidebar from '@/components/Sidebar';
 import { getMarkers, getTrip } from '@/lib/api';
 import { MarkerData } from '@/components/Map';
 import { useToast } from '@/components/Toast';
+import { ShieldAlert } from 'lucide-react';
+import ReportModal from '@/components/ReportModal';
 
 const MapComponent = dynamic(() => import('@/components/Map'), {
   ssr: false,
@@ -65,6 +67,7 @@ export default function HomePage() {
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [tripDetail, setTripDetail] = useState<any>(null);
   const [loadingTrip, setLoadingTrip] = useState(false);
+  const [reportTripId, setReportTripId] = useState<string | null>(null);
 
   const handleMarkerClick = useCallback(async (markerId: string) => {
     setSelectedTripId(markerId);
@@ -180,13 +183,24 @@ export default function HomePage() {
               <h2 className="font-bold text-[#25343F] truncate pr-4 text-lg">
                 {loadingTrip ? 'Loading...' : tripDetail?.title || 'Trip Details'}
               </h2>
-              <button 
-                onClick={() => { setSelectedTripId(null); setTripDetail(null); }}
-                className="text-[#25343F]/50 hover:text-[#FF9B51] transition-colors p-2 -mr-2"
-                aria-label="Close trip"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-1 -mr-2">
+                {!loadingTrip && tripDetail && (
+                  <button 
+                    onClick={() => setReportTripId(tripDetail.id)}
+                    className="text-red-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-md transition-colors flex items-center justify-center"
+                    title="Report this Trip"
+                  >
+                    <ShieldAlert size={18} />
+                  </button>
+                )}
+                <button 
+                  onClick={() => { setSelectedTripId(null); setTripDetail(null); }}
+                  className="text-[#25343F]/50 hover:text-[#FF9B51] transition-colors p-2"
+                  aria-label="Close trip"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
             
             {/* Content */}
@@ -237,6 +251,14 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={!!reportTripId}
+        onClose={() => setReportTripId(null)}
+        targetType="TRIP"
+        targetId={reportTripId || ''}
+      />
     </main>
   );
 }
