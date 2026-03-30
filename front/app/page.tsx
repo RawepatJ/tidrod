@@ -11,7 +11,7 @@ export default function Home() {
       <section className="relative z-10 flex flex-col items-center justify-center min-h-[80vh] px-6 text-center">
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-6">
           Share Rides. Save Money.{" "}
-          <span className="text-[#FF9B51]">Go Green.</span>
+          <span className="text-[#FF9B51]">Go Green</span>
         </h1>
         <p className="text-lg sm:text-xl text-[#25343F]/60 max-w-2xl mb-10">
           TidRod connects travelers for shared journeys. Find rides, split
