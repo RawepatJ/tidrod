@@ -40,6 +40,14 @@ export default function Header() {
           >
             Home
           </Link>
+          {user?.role === 'admin' && (
+            <Link
+              href="/admin"
+              className={`text-sm font-medium transition-colors ${isActive('/admin') ? 'text-[#FF9B51]' : 'text-[#25343F]/70 hover:text-[#FF9B51]'}`}
+            >
+              Admin
+            </Link>
+          )}
 
           {/* Auth Section */}
           {isLoading ? (

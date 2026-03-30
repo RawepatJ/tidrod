@@ -34,6 +34,12 @@ async function apiFetch<T = any>(endpoint: string, options: FetchOptions = {}): 
     return data;
 }
 
+export async function fetchAuth<T = any>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+    const token = getToken();
+    if (!token) throw new Error("Authentication required");
+    return apiFetch<T>(endpoint, { ...options, token });
+}
+
 // --- Auth ---
 export async function registerUser(username: string, email: string, password: string) {
     return apiFetch<{ user: any; token: string }>('/api/auth/register', {
@@ -109,12 +115,12 @@ export function removeToken(): void {
     localStorage.removeItem('tidrod_token');
 }
 
-export function getUser(): { id: string; email: string; username: string } | null {
+export function getUser(): { id: string; email: string; username: string; role: string } | null {
     const token = getToken();
     if (!token) return null;
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        return { id: payload.id, email: payload.email, username: payload.username };
+        return { id: payload.id, email: payload.email, username: payload.username, role: payload.role };
     } catch {
         return null;
     }
