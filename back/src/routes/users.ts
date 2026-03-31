@@ -50,7 +50,7 @@ router.get('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
         const { id } = req.params;
 
         const userResult = await pool.query(
-            `SELECT id, username, 
+            `SELECT id, username, gender,
                     COALESCE(bio, '') as bio,
                     avatar_url,
                     created_at 

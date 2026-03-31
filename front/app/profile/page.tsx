@@ -9,6 +9,7 @@ import { SkeletonProfile } from '@/components/Skeleton';
 import ProfileEditModal from '@/components/ProfileEditModal';
 import RatingStars from '@/components/RatingStars';
 import { StatCard } from '@/components/StatCard';
+import { AlertTriangle, User, Pencil, Plane, Calendar, Globe, Lock, MapPin } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -16,10 +17,18 @@ interface UserProfile {
   id: string;
   username: string;
   email: string;
+  gender?: string;
   bio?: string;
   avatar_url?: string;
   created_at: string;
 }
+
+const GENDER_LABELS: Record<string, string> = {
+  male: 'Male',
+  female: 'Female',
+  prefer_not: 'Prefer not to say',
+  other: 'Other',
+};
 
 interface UserTrip {
   id: string;
@@ -117,7 +126,7 @@ export default function ProfilePage() {
       <main className="flex-1 bg-gradient-to-b from-[#EAEFEF] to-[#E0E8EA] overflow-y-auto pt-22">
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-10 text-center shadow-lg">
-            <span className="text-6xl block mb-6">⚠️</span>
+            <AlertTriangle size={48} className="mx-auto mb-6 text-red-500" />
             <h2 className="text-2xl font-bold text-red-900 mb-3">Failed to Load Profile</h2>
             <p className="text-red-700 mb-5 text-lg">{error}</p>
             <p className="text-base text-red-600 mb-8">
@@ -143,7 +152,7 @@ export default function ProfilePage() {
     return (
       <main className="flex-1 bg-gradient-to-b from-[#EAEFEF] to-[#E0E8EA] flex items-center justify-center pt-22">
         <div className="text-center px-6">
-          <span className="text-7xl block mb-6">👤</span>
+          <User size={64} className="mx-auto mb-6 text-[#BFC9D1]" />
           <h2 className="text-2xl font-bold text-[#25343F] mb-3">Profile Not Found</h2>
           <Link href="/login" className="text-[#FF9B51] text-lg font-semibold hover:underline transition-all">
             Sign in to view your profile
@@ -196,7 +205,13 @@ export default function ProfilePage() {
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
                 <div className="min-w-0">
                   <h1 className="text-5xl font-bold text-[#25343F] mb-2">{profile.username}</h1>
-                  <p className="text-[#25343F]/60 text-lg mb-4">{profile.email}</p>
+                  <p className="text-[#25343F]/60 text-lg mb-2">{profile.email}</p>
+                  {profile.gender && profile.gender !== 'prefer_not' && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EAEFEF] text-[#25343F]/70 text-sm font-medium rounded-full mb-2">
+                      <User size={14} />
+                      {GENDER_LABELS[profile.gender] || profile.gender}
+                    </span>
+                  )}
                   {profile.bio && (
                     <p className="text-[#25343F]/70 mt-4 text-base leading-relaxed break-words max-w-2xl">
                       {profile.bio}
@@ -216,7 +231,7 @@ export default function ProfilePage() {
                   onClick={() => setIsEditModalOpen(true)}
                   className="px-8 py-4 bg-gradient-to-r from-[#FF9B51] to-[#e8893f] hover:from-[#e8893f] hover:to-[#d67a32] text-white rounded-2xl text-base font-bold transition-all shadow-lg hover:shadow-xl hover:shadow-[#FF9B51]/30 flex-shrink-0 w-full sm:w-auto active:scale-95 hover:-translate-y-1"
                 >
-                  ✏️ Edit Profile
+                  <Pencil size={16} className="mr-1" /> Edit Profile
                 </button>
               </div>
             </div>
@@ -261,7 +276,7 @@ export default function ProfilePage() {
 
           {trips.length === 0 ? (
             <div className="text-center py-20 text-[#BFC9D1]">
-              <span className="text-7xl block mb-6">🗺️</span>
+              <MapPin size={64} className="mx-auto mb-6 text-[#BFC9D1]" />
               <p className="font-bold text-2xl text-[#25343F]">No trips yet</p>
               <p className="text-base mt-3 text-[#25343F]/60">Create your first trip on the map!</p>
               <Link
@@ -295,6 +310,7 @@ export default function ProfilePage() {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       ) : (
+
                         <div className="flex items-center justify-center h-full text-6xl">🗺️</div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -320,7 +336,7 @@ export default function ProfilePage() {
         {/* Account Info */}
         <div className="bg-gradient-to-br from-white to-[#F8FAFB] rounded-3xl p-10 shadow-xl border border-[#BFC9D1]/10">
           <h3 className="text-sm font-bold text-[#25343F]/70 uppercase tracking-widest mb-8 flex items-center gap-3">
-            <span className="text-2xl">🔒</span>
+            <Lock size={20} className="text-[#25343F]/60" />
             <span>Account Information</span>
           </h3>
           <div className="space-y-6">

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { getMessages, getToken, getUser } from '@/lib/api';
-import { ShieldAlert, Flag } from 'lucide-react';
+import { ShieldAlert, Flag, MessageSquare, Send } from 'lucide-react';
 import ReportModal from './ReportModal';
 import { useToast } from '@/components/Toast';
 
@@ -131,7 +131,7 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
       {/* Header */}
       <div className="px-4 py-3 bg-[#25343F] text-white flex items-center justify-between">
         <h3 className="font-semibold text-sm flex items-center gap-2">
-          💬 Trip Chat
+          <MessageSquare size={16} /> Trip Chat
           <span className={`w-2 h-2 rounded-full ${connected ? 'bg-green-400' : 'bg-red-400'}`} />
         </h3>
         <div className="flex items-center gap-2">
@@ -159,7 +159,7 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
           <div className="text-center text-[#BFC9D1] py-8">Loading messages...</div>
         ) : messages.length === 0 ? (
           <div className="text-center text-[#BFC9D1] py-8">
-            <span className="text-3xl block mb-2">🗨️</span>
+            <MessageSquare size={28} className="mx-auto mb-2 text-[#BFC9D1]" />
             <p className="text-sm">No messages yet. Start the conversation!</p>
           </div>
         ) : (

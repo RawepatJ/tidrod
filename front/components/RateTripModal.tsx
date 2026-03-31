@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { rateTrip } from '@/lib/api';
 import RatingStars from './RatingStars';
+import { Star, Loader2, X } from 'lucide-react';
 
 interface RateTripModalProps {
   isOpen: boolean;
@@ -28,11 +29,11 @@ export default function RateTripModal({
   const [error, setError] = useState('');
 
   const ratingLabels = {
-    1: '😞 Poor',
-    2: '😐 Fair',
-    3: '😊 Good',
-    4: '😄 Very Good',
-    5: '😍 Excellent',
+    1: 'Poor',
+    2: 'Fair',
+    3: 'Good',
+    4: 'Very Good',
+    5: 'Excellent',
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -83,7 +84,7 @@ export default function RateTripModal({
               onClick={onClose}
               className="text-[#25343F]/50 hover:text-[#25343F] text-2xl leading-none transition-colors"
             >
-              ×
+              <X size={20} />
             </button>
           </div>
 
@@ -176,11 +177,11 @@ export default function RateTripModal({
               >
                 {loading ? (
                   <>
-                    <span className="inline-block animate-spin mr-2">⟳</span>
+                    <Loader2 size={16} className="animate-spin mr-2" />
                     Submitting...
                   </>
                 ) : (
-                  `Submit Rating ${rating > 0 ? `(${rating}⭐)` : ''}`
+                  `Submit Rating ${rating > 0 ? `(${rating}★)` : ''}`
                 )}
               </button>
             </div>
