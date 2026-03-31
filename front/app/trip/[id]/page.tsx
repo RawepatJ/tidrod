@@ -225,6 +225,10 @@ export default function TripDetailPage() {
                         addToast('Please login to join the chat', 'error');
                         return;
                       }
+                      if (trip.ladiesOnly && user.gender !== 'female') {
+                        addToast('Only women can join ladies-only trips', 'error');
+                        return;
+                      }
                       setHasJoined(true);
                     }}
                     className="w-full py-3 px-4 bg-[#FF9B51] hover:bg-[#e8893f] text-white rounded-xl font-semibold transition-all shadow-md hover:shadow-lg"

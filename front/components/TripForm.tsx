@@ -43,6 +43,8 @@ export default function TripForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { addToast } = useToast();
+  const user = getUser();
+  const ladiesOnlyBlocked = !!user && user.gender !== 'female';
 
   // Step 1
   const [destination, setDestination] = useState('');
@@ -151,6 +153,12 @@ export default function TripForm({
     if (!token) {
       setSubmitError('Please sign in to create a trip');
       addToast('Please sign in to create a trip', 'warning');
+      return;
+    }
+
+    if (ladiesOnly && ladiesOnlyBlocked) {
+      setSubmitError('Only women can create ladies-only trips');
+      addToast('Only women can create ladies-only trips', 'error');
       return;
     }
 
@@ -524,7 +532,8 @@ export default function TripForm({
               </label>
               <button
                 onClick={() => setLadiesOnly((prev) => !prev)}
-                className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                disabled={ladiesOnlyBlocked}
+                className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed ${
                   ladiesOnly
                     ? 'border-[#FF9B51] bg-[#FF9B51]/10 shadow-md'
                     : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 hover:border-[#BFC9D1]'
@@ -541,6 +550,11 @@ export default function TripForm({
                   )}
                 </div>
               </button>
+              {ladiesOnlyBlocked && (
+                <p className="mt-2 text-xs text-[#25343F]/50">
+                  Only women can create ladies-only trips.
+                </p>
+              )}
             </div>
 
             {/* Photo Upload */}

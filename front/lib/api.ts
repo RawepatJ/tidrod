@@ -41,10 +41,10 @@ export async function fetchAuth<T = any>(endpoint: string, options: FetchOptions
 }
 
 // --- Auth ---
-export async function registerUser(username: string, email: string, password: string) {
+export async function registerUser(username: string, email: string, password: string, gender: string) {
     return apiFetch<{ user: any; token: string }>('/api/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({ username, email, password, gender }),
     });
 }
 
@@ -116,12 +116,12 @@ export function removeToken(): void {
     localStorage.removeItem('tidrod_token');
 }
 
-export function getUser(): { id: string; email: string; username: string; role: string } | null {
+export function getUser(): { id: string; email: string; username: string; role: string; gender?: string } | null {
     const token = getToken();
     if (!token) return null;
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        return { id: payload.id, email: payload.email, username: payload.username, role: payload.role };
+        return { id: payload.id, email: payload.email, username: payload.username, role: payload.role, gender: payload.gender };
     } catch {
         return null;
     }

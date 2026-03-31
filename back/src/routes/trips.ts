@@ -81,6 +81,18 @@ router.post('/', authMiddleware, upload.array('photos', 10), async (req: AuthReq
             return;
         }
 
+        if (isLadiesOnly) {
+            const genderResult = await client.query('SELECT gender FROM users WHERE id = $1', [req.user!.id]);
+            if (genderResult.rows.length === 0) {
+                res.status(403).json({ error: 'User not found' });
+                return;
+            }
+            if (genderResult.rows[0].gender !== 'female') {
+                res.status(403).json({ error: 'Only women can create ladies-only trips' });
+                return;
+            }
+        }
+
         await client.query('BEGIN');
 
         const tripResult = await client.query(
