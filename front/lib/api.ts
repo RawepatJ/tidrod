@@ -64,8 +64,12 @@ export async function getTrip(id: string) {
     return apiFetch<any>(`/api/trips/${id}`);
 }
 
+export async function searchTrips(query: string) {
+    return apiFetch<{ trips: any[] }>(`/api/trips/search?q=${encodeURIComponent(query)}`);
+}
+
 export async function createTrip(
-    data: { title: string; description: string; latitude: number; longitude: number; ladiesOnly?: boolean },
+    data: { title: string; description: string; latitude: number; longitude: number; ladiesOnly?: boolean; privacy?: string },
     photos: File[],
     token: string
 ) {
@@ -75,6 +79,7 @@ export async function createTrip(
     formData.append('latitude', String(data.latitude));
     formData.append('longitude', String(data.longitude));
     formData.append('ladiesOnly', String(!!data.ladiesOnly));
+    formData.append('privacy', data.privacy || 'open');
     photos.forEach((photo) => formData.append('photos', photo));
 
     return apiFetch<any>('/api/trips', {
@@ -89,6 +94,34 @@ export async function deleteTrip(id: string, token: string) {
         method: 'DELETE',
         token,
     });
+}
+
+export async function endTrip(tripId: string) {
+    return fetchAuth<{ message: string }>(`/api/trips/${tripId}/end`, {
+        method: 'POST',
+    });
+}
+
+// --- Trip Join ---
+export async function joinTrip(tripId: string) {
+    return fetchAuth<{ message: string; status: string }>(`/api/trips/${tripId}/join`, {
+        method: 'POST',
+    });
+}
+
+export async function getJoinRequests(tripId: string) {
+    return fetchAuth<{ requests: any[] }>(`/api/trips/${tripId}/join-requests`);
+}
+
+export async function respondJoinRequest(tripId: string, requestId: string, status: 'approved' | 'denied') {
+    return fetchAuth<{ message: string }>(`/api/trips/${tripId}/join-requests/${requestId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+    });
+}
+
+export async function getTripMembers(tripId: string) {
+    return apiFetch<{ members: any[] }>(`/api/trips/${tripId}/members`);
 }
 
 // --- Markers ---
@@ -138,6 +171,35 @@ export async function rateTrip(tripId: string, rating: number, comment: string, 
         method: 'POST',
         body: JSON.stringify({ rating, comment }),
         token,
+    });
+}
+
+// --- Notifications ---
+export async function getNotifications(page = 1) {
+    return fetchAuth<{ notifications: any[]; pagination: any }>(`/api/notifications?page=${page}`);
+}
+
+export async function getUnreadNotificationCount() {
+    return fetchAuth<{ count: number }>('/api/notifications/unread-count');
+}
+
+export async function markNotificationRead(id: string) {
+    return fetchAuth<{ message: string }>(`/api/notifications/${id}/read`, {
+        method: 'PATCH',
+    });
+}
+
+export async function markAllNotificationsRead() {
+    return fetchAuth<{ message: string }>('/api/notifications/read-all', {
+        method: 'POST',
+    });
+}
+
+// --- Admin ---
+export async function adminUpdateUserStatus(userId: string, status: 'active' | 'suspended' | 'banned') {
+    return fetchAuth<{ message: string; user: any }>(`/api/admin/users/${userId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
     });
 }
 
