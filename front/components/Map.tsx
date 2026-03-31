@@ -32,10 +32,13 @@ interface MapProps {
   autoFitBounds?: boolean;
 }
 
+// Thailand bounding box
+const THAILAND_BOUNDS: [[number, number], [number, number]] = [[97, 5], [106, 21]];
+
 export default function MapComponent({
   markers = [],
-  center = [0, 0],
-  zoom = 2,
+  center = [100.5018, 13.7563],
+  zoom = 6,
   selectionMode = null,
   onLocationSelect,
   onMapMove,
@@ -63,11 +66,14 @@ export default function MapComponent({
     if (map.current) return;
     if (!mapContainer.current) return;
 
+    const hasCustomCenter = center[0] !== 100.5018 || center[1] !== 13.7563;
+
     const mapInstance = new maplibregl.Map({
       container: mapContainer.current,
-      style: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
-      center: center.length === 2 && (center[0] !== 0 || center[1] !== 0) ? center : [100.5018, 13.7563],
-      zoom: center.length === 2 && (center[0] !== 0 || center[1] !== 0) ? zoom : 6
+      style: '/osm_liberty.json',
+      center: hasCustomCenter ? center : [100.5018, 13.7563],
+      zoom: hasCustomCenter ? zoom : 6,
+      // maxBounds: THAILAND_BOUNDS,
     });
 
     map.current = mapInstance;
@@ -93,7 +99,7 @@ export default function MapComponent({
           clusterRadius: 50
         });
 
-        // Add cluster layers
+        // Cluster circles
         mapInstance.addLayer({
           id: 'clusters',
           type: 'circle',
@@ -101,9 +107,9 @@ export default function MapComponent({
           filter: ['has', 'point_count'],
           paint: {
             'circle-color': ['step', ['get', 'point_count'], '#FF9B51', 10, '#e8893f', 50, '#d47a30'],
-            'circle-radius': ['step', ['get', 'point_count'], 20, 10, 25, 50, 30],
+            'circle-radius': ['step', ['get', 'point_count'], 22, 10, 28, 50, 34],
             'circle-stroke-width': 3,
-            'circle-stroke-color': '#ffffff'
+            'circle-stroke-color': 'rgba(255,255,255,0.3)'
           }
         });
 
@@ -115,14 +121,14 @@ export default function MapComponent({
           layout: {
             'text-field': '{point_count_abbreviated}',
             'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
-            'text-size': 14
+            'text-size': 13
           },
           paint: {
             'text-color': '#ffffff'
           }
         });
 
-        // Add invisible layer for unclustered points so we can sync HTML markers to them
+        // Invisible unclustered point layer for syncing HTML markers
         mapInstance.addLayer({
           id: 'unclustered-point',
           type: 'circle',
@@ -148,7 +154,7 @@ export default function MapComponent({
             // ignore
           }
         });
-        
+
         mapInstance.on('mouseenter', 'clusters', () => {
           mapInstance.getCanvas().style.cursor = 'pointer';
         });
@@ -157,8 +163,8 @@ export default function MapComponent({
         });
       }
 
-      const hasCustomCenter = center.length === 2 && (center[0] !== 0 || center[1] !== 0);
-      if (!hasCustomCenter) {
+      const hasCustomCenterCheck = center[0] !== 100.5018 || center[1] !== 13.7563;
+      if (!hasCustomCenterCheck) {
         geolocate.trigger();
       }
 
@@ -201,7 +207,7 @@ export default function MapComponent({
     };
   }, []);
 
-  // Manage Markers using GeoJSON clustering & HTMl Marker sync
+  // Manage Markers using GeoJSON clustering & HTML Marker sync
   useEffect(() => {
     if (!isMapReady || !map.current) return;
     const mInstance = map.current;
@@ -219,10 +225,10 @@ export default function MapComponent({
     // Sync HTML markers for unclustered points
     const updateMarkers = () => {
       if (!map.current || !map.current.getLayer('unclustered-point')) return;
-      
+
       const unclusteredFeatures = map.current.queryRenderedFeatures({ layers: ['unclustered-point'] });
       const currentFeatures = new Map(unclusteredFeatures.map(f => [f.properties.id, f]));
-      
+
       // Remove markers that are no longer visible
       markersRef.current = markersRef.current.filter(marker => {
         const id = (marker as any)._customId;
@@ -235,36 +241,56 @@ export default function MapComponent({
 
       // Add new markers
       const existingIds = new Set(markersRef.current.map(m => (m as any)._customId));
-      
+
       unclusteredFeatures.forEach(feature => {
         if (feature.geometry.type !== 'Point') return;
         const id = feature.properties.id;
         if (existingIds.has(id)) return;
-        
+
         const coords = feature.geometry.coordinates as [number, number];
         const el = document.createElement('div');
         el.className = 'custom-map-marker';
         const label = feature.properties.label || 'Trip';
-        el.style.cssText = `
-          cursor: pointer;
-        `;
+        el.style.cssText = `cursor: pointer;`;
+
+        // Custom SVG pin with label
         el.innerHTML = `
           <div style="
-            display: flex; align-items: center; gap: 6px;
-            background: white; padding: 4px 10px 4px 6px;
-            border-radius: 9999px; font-weight: 600; font-size: 13px;
-            color: #25343F; white-space: nowrap;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 2px solid white;
-            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex; flex-direction: column; align-items: center;
             transform-origin: center bottom;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
           " class="marker-inner">
-            <span style="font-size: 16px;">📍</span><span style="overflow: hidden; text-overflow: ellipsis; max-width: 120px;">${label}</span>
+            <div style="
+              display: flex; align-items: center; gap: 5px;
+              background: linear-gradient(135deg, #FF9B51, #e8893f);
+              padding: 5px 10px 5px 7px;
+              border-radius: 12px; font-weight: 600; font-size: 12px;
+              color: white; white-space: nowrap;
+              box-shadow: 0 4px 16px rgba(255,155,81,0.4);
+              border: 2px solid rgba(255,255,255,0.3);
+              max-width: 160px;
+            ">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <span style="overflow: hidden; text-overflow: ellipsis; max-width: 120px;">${label}</span>
+            </div>
+            <div style="
+              width: 2px; height: 8px;
+              background: linear-gradient(to bottom, #FF9B51, transparent);
+            "></div>
+            <div style="
+              width: 6px; height: 3px;
+              background: rgba(255,155,81,0.4);
+              border-radius: 50%;
+            "></div>
           </div>
         `;
-        
+
         const inner = el.querySelector('.marker-inner') as HTMLElement;
-        el.onmouseenter = () => { inner.style.transform = 'scale(1.05) translateY(-2px)'; inner.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)'; };
-        el.onmouseleave = () => { inner.style.transform = 'scale(1) translateY(0)'; inner.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)'; };
+        el.onmouseenter = () => { inner.style.transform = 'scale(1.08) translateY(-3px)'; };
+        el.onmouseleave = () => { inner.style.transform = 'scale(1) translateY(0)'; };
 
         if (id && onMarkerClick) {
           el.onclick = (e) => {
@@ -276,7 +302,7 @@ export default function MapComponent({
         const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
           .setLngLat(coords)
           .addTo(map.current!);
-        
+
         (marker as any)._customId = id;
         markersRef.current.push(marker);
       });
@@ -314,7 +340,6 @@ export default function MapComponent({
     const canvas = mapContainer.current.querySelector('.maplibregl-canvas') as HTMLElement;
 
     if (selectionMode) {
-      // Change cursor to grab
       if (canvas) {
         canvas.style.cursor = 'grab';
         canvas.addEventListener('mousedown', () => { canvas.style.cursor = 'grabbing'; });
@@ -327,12 +352,18 @@ export default function MapComponent({
         transform: translate(-50%, -100%);
         z-index: 10; pointer-events: none;
         transition: transform 0.15s ease-out;
-        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        filter: drop-shadow(0 4px 8px rgba(255,155,81,0.5));
       `;
       pin.innerHTML = `
         <svg width="44" height="56" viewBox="0 0 44 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22 0C9.85 0 0 9.85 0 22c0 16.354 19.983 33.39 20.836 34.118a1.71 1.71 0 002.328 0C23.017 55.39 44 38.354 44 22 44 9.85 34.15 0 22 0z" fill="#FF9B51"/>
-          <circle cx="22" cy="22" r="9" fill="white"/>
+          <defs>
+            <linearGradient id="pinGrad" x1="0" y1="0" x2="44" y2="56" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FF9B51"/>
+              <stop offset="100%" stop-color="#e8893f"/>
+            </linearGradient>
+          </defs>
+          <path d="M22 0C9.85 0 0 9.85 0 22c0 16.354 19.983 33.39 20.836 34.118a1.71 1.71 0 002.328 0C23.017 55.39 44 38.354 44 22 44 9.85 34.15 0 22 0z" fill="url(#pinGrad)"/>
+          <circle cx="22" cy="22" r="9" fill="white" opacity="0.9"/>
           <circle cx="22" cy="22" r="4" fill="#FF9B51"/>
         </svg>
       `;
@@ -342,7 +373,7 @@ export default function MapComponent({
         position: absolute; top: 50%; left: 50%;
         transform: translate(-50%, 2px);
         width: 14px; height: 6px; border-radius: 50%;
-        background: rgba(0,0,0,0.25); z-index: 9;
+        background: rgba(255,155,81,0.3); z-index: 9;
         pointer-events: none;
         transition: all 0.15s ease-out;
       `;
@@ -354,7 +385,6 @@ export default function MapComponent({
 
       let geocodeTimeout: ReturnType<typeof setTimeout>;
 
-      // Animate pin on map drag
       const onMoveStart = () => {
         pin.style.transform = 'translate(-50%, -115%)';
         shadow.style.transform = 'translate(-50%, 4px)';
@@ -362,19 +392,17 @@ export default function MapComponent({
         shadow.style.width = '18px';
         clearTimeout(geocodeTimeout);
       };
-      
+
       const onMoveEnd = () => {
         pin.style.transform = 'translate(-50%, -100%)';
         shadow.style.transform = 'translate(-50%, 2px)';
         shadow.style.opacity = '1';
         shadow.style.width = '14px';
-        
-        // Report center coords via ref
+
         if (onLocationSelectRef.current && map.current) {
           const c = map.current.getCenter();
-          onLocationSelectRef.current(c.lat, c.lng); // Send coordinates immediately for responsive UI
-          
-          // Debounce reverse geocoding
+          onLocationSelectRef.current(c.lat, c.lng);
+
           clearTimeout(geocodeTimeout);
           geocodeTimeout = setTimeout(async () => {
             try {
@@ -382,7 +410,6 @@ export default function MapComponent({
               if (!res.ok) return;
               const data = await res.json();
               if (data && data.display_name && onLocationSelectRef.current) {
-                // Return updated display name
                 onLocationSelectRef.current(c.lat, c.lng, data.display_name);
               }
             } catch (err) {
@@ -395,7 +422,6 @@ export default function MapComponent({
       map.current.on('movestart', onMoveStart);
       map.current.on('moveend', onMoveEnd);
 
-      // Fire initial position
       if (onLocationSelectRef.current && map.current) {
         const c = map.current.getCenter();
         onLocationSelectRef.current(c.lat, c.lng);
@@ -414,7 +440,6 @@ export default function MapComponent({
         shadowRef.current = null;
       };
     } else {
-      // Reset cursor
       if (canvas) canvas.style.cursor = '';
     }
   }, [selectionMode, isMapReady]);
@@ -429,7 +454,7 @@ export default function MapComponent({
     <div className="w-full h-full min-h-[400px] relative">
       <div
         ref={mapContainer}
-        className="w-full h-full rounded-lg overflow-hidden shadow-lg bg-[#EAEFEF]"
+        className="w-full h-full rounded-lg overflow-hidden shadow-lg bg-[#1a1a2e]"
       />
     </div>
   );
