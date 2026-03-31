@@ -143,4 +143,93 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response): P
     }
 });
 
+// GET /api/trips/:id/rating — get trip average rating
+router.get('/:id/rating', async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+
+        const result = await pool.query(
+            `SELECT 
+                COUNT(id) as total_ratings,
+                ROUND(AVG(rating)::numeric, 2) as average_rating
+             FROM trip_ratings
+             WHERE trip_id = $1`,
+            [id]
+        );
+
+        const stats = result.rows[0];
+        res.json({
+            trip_id: id,
+            total_ratings: parseInt(stats.total_ratings) || 0,
+            average_rating: stats.average_rating ? parseFloat(stats.average_rating) : 0,
+        });
+    } catch (err) {
+        console.error('Get trip rating error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// POST /api/trips/:id/rating — rate a trip (auth required)
+router.post('/:id/rating', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const { rating, comment } = req.body;
+        const userId = req.user!.id;
+
+        if (!rating || rating < 1 || rating > 5) {
+            res.status(400).json({ error: 'Rating must be between 1 and 5' });
+            return;
+        }
+
+        // Check if trip exists
+        const tripCheck = await pool.query('SELECT user_id FROM trips WHERE id = $1', [id]);
+        if (tripCheck.rows.length === 0) {
+            res.status(404).json({ error: 'Trip not found' });
+            return;
+        }
+
+        // Don't allow rating own trip
+        if (tripCheck.rows[0].user_id === userId) {
+            res.status(400).json({ error: 'Cannot rate your own trip' });
+            return;
+        }
+
+        // Insert or update rating (upsert)
+        const result = await pool.query(
+            `INSERT INTO trip_ratings (trip_id, user_id, rating, comment)
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT (trip_id, user_id)
+             DO UPDATE SET rating = $3, comment = $4, created_at = NOW()
+             RETURNING *`,
+            [id, userId, rating, comment || null]
+        );
+
+        res.json({ message: 'Rating saved successfully', rating: result.rows[0] });
+    } catch (err) {
+        console.error('Rate trip error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// GET /api/trips/:id/ratings — get all ratings for a trip
+router.get('/:id/ratings', async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+
+        const result = await pool.query(
+            `SELECT tr.*, u.username, u.avatar_url
+             FROM trip_ratings tr
+             JOIN users u ON tr.user_id = u.id
+             WHERE tr.trip_id = $1
+             ORDER BY tr.created_at DESC`,
+            [id]
+        );
+
+        res.json({ ratings: result.rows });
+    } catch (err) {
+        console.error('Get trip ratings error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 export default router;
