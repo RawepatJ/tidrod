@@ -57,6 +57,12 @@ export async function initDatabase(): Promise<void> {
         target_type VARCHAR(50), -- e.g., 'user', 'trip'
         target_id UUID,
         details JSONB,
+        reporter_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        target_type VARCHAR(50) NOT NULL,
+        target_id UUID NOT NULL,
+        reason VARCHAR(255) NOT NULL,
+        description TEXT,
+        status VARCHAR(50) DEFAULT 'PENDING',
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 

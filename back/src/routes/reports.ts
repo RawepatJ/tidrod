@@ -1,31 +1,33 @@
-import { Router, Response } from 'express';
+import { Router } from 'express';
 import pool from '../db';
-import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 
-// Protect all report routes
-router.use(authMiddleware);
-
-// POST /api/reports
-router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/', authMiddleware, async (req: any, res) => {
     try {
-        const { reported_id, trip_id, reason } = req.body;
-        const reporter_id = req.user!.id;
+        const reporterId = req.user.id;
+        const { targetType, targetId, reason, description } = req.body;
 
-        if (!reason) {
-            res.status(400).json({ error: 'Reason is required' });
-            return;
+        if (!targetType || !targetId || !reason) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const validTypes = ['TRIP', 'USER', 'MESSAGE'];
+        if (!validTypes.includes(targetType.toUpperCase())) {
+            return res.status(400).json({ error: 'Invalid target type' });
         }
 
         const result = await pool.query(
-            'INSERT INTO reports (reporter_id, reported_id, trip_id, reason) VALUES ($1, $2, $3, $4) RETURNING id',
-            [reporter_id, reported_id || null, trip_id || null, reason]
+            `INSERT INTO reports (reporter_id, target_type, target_id, reason, description)
+             VALUES ($1, $2, $3, $4, $5)
+             RETURNING id, status, created_at`,
+            [reporterId, targetType.toUpperCase(), targetId, reason, description || null]
         );
 
-        res.status(201).json({ message: 'Report submitted successfully', id: result.rows[0].id });
-    } catch (err) {
-        console.error('Submit report error:', err);
+        res.status(201).json({ message: 'Report submitted successfully', report: result.rows[0] });
+    } catch (error) {
+        console.error('Error submitting report:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
