@@ -3,6 +3,10 @@
 import { useState, useMemo, useEffect } from 'react';
 import { createTrip, getToken, getUser } from '@/lib/api';
 import { useToast } from './Toast';
+import {
+  Plane, Calendar, MapPin, Users, Lock, Globe, Camera, Clock,
+  Search, Check, X, ChevronRight, ChevronLeft, Loader2, Map as MapIcon
+} from 'lucide-react';
 
 interface TripData {
   destination: string;
@@ -93,13 +97,13 @@ export default function TripForm({
     return days;
   }, []);
 
-  // Search location via Nominatim
+  // Search location via Nominatim — Thailand only
   const handleSearch = async () => {
     if (searchQuery.length < 2) return;
     setIsSearching(true);
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=th`
       );
       const data = await res.json();
       setSearchResults(data.slice(0, 5));
@@ -167,7 +171,7 @@ export default function TripForm({
 
     try {
       const timeLabel = timeOption === 'specific' ? specificTime : 'Flexible';
-      const description = `📅 ${selectedDate} ${timeLabel}\n👥 ${privacy === 'open' ? 'Open' : 'Private'}\n📍 ${locationName}`;
+      const description = `${selectedDate} ${timeLabel}\n${privacy === 'open' ? 'Open' : 'Private'}\n${locationName}`;
 
       await createTrip(
         {
@@ -176,12 +180,12 @@ export default function TripForm({
           latitude: locationLat,
           longitude: locationLon,
           ladiesOnly,
+          privacy,
         },
         photos,
         token
       );
 
-      // Notify parent
       onAddTrip({
         destination,
         date: selectedDate,
@@ -227,11 +231,11 @@ export default function TripForm({
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-lg border border-[#BFC9D1]/20 overflow-hidden">
+    <div className="bg-[#EAEFEF]/50 backdrop-blur-lg rounded-3xl shadow-lg border border-[#BFC9D1]/20 overflow-hidden">
       {selectionMode ? (
         <div className="p-6 flex flex-col items-center text-center animate-fade-in">
-          <div className="w-16 h-16 bg-[#FF9B51]/10 rounded-full flex items-center justify-center mb-4 text-3xl">
-            📍
+          <div className="w-16 h-16 bg-[#FF9B51]/10 rounded-full flex items-center justify-center mb-4">
+            <MapPin size={28} className="text-[#FF9B51]" />
           </div>
           <h3 className="text-xl font-bold text-[#25343F] mb-2">
             Choose Location
@@ -240,7 +244,6 @@ export default function TripForm({
             Move the map to position the pin at your location.
           </p>
 
-          {/* Show live coordinates */}
           {selectedLat != null && selectedLon != null && (
             <div className="w-full mb-4 px-4 py-2.5 bg-[#EAEFEF] rounded-xl text-xs text-[#25343F]/60 font-mono">
               {selectedLat.toFixed(5)}, {selectedLon.toFixed(5)}
@@ -250,15 +253,15 @@ export default function TripForm({
           <div className="flex w-full gap-3">
             <button
               onClick={onCancelSelection}
-              className="flex-1 py-2.5 px-4 border border-[#BFC9D1] text-[#25343F]/70 rounded-xl hover:bg-[#EAEFEF] font-medium transition-colors"
+              className="flex-1 py-2.5 px-4 border border-[#BFC9D1] text-[#25343F]/70 rounded-xl hover:bg-[#EAEFEF] font-medium transition-colors flex items-center justify-center gap-2"
             >
-              Cancel
+              <X size={16} /> Cancel
             </button>
             <button
               onClick={onConfirmSelection}
-              className="flex-1 py-2.5 px-4 bg-[#FF9B51] text-white rounded-xl hover:bg-[#e8893f] shadow-lg hover:shadow-xl font-bold transition-all"
+              className="flex-1 py-2.5 px-4 bg-[#FF9B51] text-white rounded-xl hover:bg-[#e8893f] shadow-lg hover:shadow-xl font-bold transition-all flex items-center justify-center gap-2"
             >
-              ✓ Confirm
+              <Check size={16} /> Confirm
             </button>
           </div>
         </div>
@@ -266,356 +269,358 @@ export default function TripForm({
         <>
           {/* Step Indicator */}
           <div className="flex items-center justify-between px-6 pt-5 pb-3">
-        {[1, 2, 3, 4].map((s) => (
-          <div key={s} className="flex items-center flex-1">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-                s === step
-                  ? 'bg-[#FF9B51] text-white scale-110 shadow-lg shadow-[#FF9B51]/30'
-                  : s < step
-                  ? 'bg-green-500 text-white'
-                  : 'bg-[#EAEFEF] text-[#BFC9D1]'
-              }`}
-            >
-              {s < step ? '✓' : s}
-            </div>
-            {s < 4 && (
-              <div
-                className={`flex-1 h-1 mx-1 rounded-full transition-all duration-300 ${
-                  s < step ? 'bg-green-500' : 'bg-[#EAEFEF]'
-                }`}
-              />
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div className="px-6 pb-6">
-        {/* ─── STEP 1: Destination ─── */}
-        {step === 1 && (
-          <div className="animate-fade-in">
-            <div className="text-center mb-5">
-              <span className="text-3xl mb-2 block">✈️</span>
-              <h2 className="text-xl font-bold text-[#25343F]">I want to go...</h2>
-              <p className="text-sm text-[#25343F]/50 mt-1">Where are you headed?</p>
-            </div>
-            <input
-              type="text"
-              placeholder="e.g. Bangkok, Chiang Mai..."
-              className="w-full p-3 border-2 border-[#BFC9D1]/30 rounded-xl bg-[#EAEFEF]/50 text-[#25343F] focus:border-[#FF9B51] focus:ring-2 focus:ring-[#FF9B51]/20 outline-none transition-all text-center text-lg"
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              autoFocus
-            />
-            <button
-              onClick={() => setStep(2)}
-              disabled={!canGoNext()}
-              className="w-full mt-5 py-3 rounded-xl font-bold text-white transition-all duration-200 bg-[#FF9B51] hover:bg-[#e8893f] disabled:bg-[#BFC9D1] disabled:cursor-not-allowed shadow-lg hover:shadow-xl disabled:shadow-none"
-            >
-              Next →
-            </button>
-          </div>
-        )}
-
-        {/* ─── STEP 2: When? ─── */}
-        {step === 2 && (
-          <div className="animate-fade-in">
-            <div className="text-center mb-5">
-              <span className="text-3xl mb-2 block">📅</span>
-              <h2 className="text-xl font-bold text-[#25343F]">When?</h2>
-              <p className="text-sm text-[#25343F]/50 mt-1">Pick a day for your trip</p>
-            </div>
-
-            <div className="grid grid-cols-7 gap-1.5 mb-5">
-              {next7Days.map((d) => (
-                <button
-                  key={d.date}
-                  onClick={() => setSelectedDate(d.date)}
-                  className={`flex flex-col items-center py-2 px-1 rounded-xl text-xs font-medium transition-all duration-200 border-2 ${
-                    selectedDate === d.date
-                      ? 'border-[#FF9B51] bg-[#FF9B51]/10 text-[#FF9B51] shadow-md'
-                      : 'border-transparent bg-[#EAEFEF] text-[#25343F]/60 hover:bg-[#BFC9D1]/30'
-                  }`}
+            {[1, 2, 3, 4].map((s) => (
+              <div key={s} className="flex items-center flex-1">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${s === step
+                    ? 'bg-[#FF9B51] text-white scale-110 shadow-lg shadow-[#FF9B51]/30'
+                    : s < step
+                      ? 'bg-green-500 text-white'
+                      : 'bg-[#EAEFEF] text-[#BFC9D1]'
+                    }`}
                 >
-                  <span className="text-[10px] uppercase opacity-70">{d.weekday}</span>
-                  <span className="text-lg font-bold">{d.day}</span>
-                  <span className="text-[10px] opacity-60">{d.month}</span>
-                  {d.isToday && (
-                    <span className="w-1.5 h-1.5 bg-[#FF9B51] rounded-full mt-0.5" />
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex gap-2 mb-4">
-              <button
-                onClick={() => setTimeOption('flexible')}
-                className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all duration-200 border-2 ${
-                  timeOption === 'flexible'
-                    ? 'border-[#FF9B51] bg-[#FF9B51]/10 text-[#FF9B51] shadow-md'
-                    : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 text-[#25343F]/60 hover:border-[#BFC9D1]'
-                }`}
-              >
-                🕐 Flexible time
-              </button>
-              <button
-                onClick={() => setTimeOption('specific')}
-                className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all duration-200 border-2 ${
-                  timeOption === 'specific'
-                    ? 'border-[#FF9B51] bg-[#FF9B51]/10 text-[#FF9B51] shadow-md'
-                    : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 text-[#25343F]/60 hover:border-[#BFC9D1]'
-                }`}
-              >
-                ⏰ Set specific time
-              </button>
-            </div>
-
-            {timeOption === 'specific' && (
-              <div className="mb-4 animate-fade-in">
-                <input
-                  type="time"
-                  value={specificTime}
-                  onChange={(e) => setSpecificTime(e.target.value)}
-                  className="w-full p-3 border-2 border-[#BFC9D1]/30 rounded-xl bg-[#EAEFEF]/50 text-[#25343F] focus:border-[#FF9B51] outline-none text-center text-lg"
-                />
+                  {s < step ? <Check size={14} /> : s}
+                </div>
+                {s < 4 && (
+                  <div
+                    className={`flex-1 h-1 mx-1 rounded-full transition-all duration-300 ${s < step ? 'bg-green-500' : 'bg-[#EAEFEF]'
+                      }`}
+                  />
+                )}
               </div>
-            )}
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setStep(1)}
-                className="flex-1 py-3 rounded-xl font-bold text-[#25343F]/60 bg-[#EAEFEF] hover:bg-[#BFC9D1]/30 transition-all"
-              >
-                ← Back
-              </button>
-              <button
-                onClick={() => setStep(3)}
-                disabled={!canGoNext()}
-                className="flex-1 py-3 rounded-xl font-bold text-white bg-[#FF9B51] hover:bg-[#e8893f] disabled:bg-[#BFC9D1] disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none"
-              >
-                Next →
-              </button>
-            </div>
+            ))}
           </div>
-        )}
 
-        {/* ─── STEP 3: Map Location ─── */}
-        {step === 3 && (
-          <div className="animate-fade-in">
-            <div className="text-center mb-5">
-              <span className="text-3xl mb-2 block">📍</span>
-              <h2 className="text-xl font-bold text-[#25343F]">Add pin to map</h2>
-              <p className="text-sm text-[#25343F]/50 mt-1">
-                Search or tap the map to set your meetup point
-              </p>
-            </div>
-
-            <div className="relative mb-3">
-              <div className="flex gap-2">
+          <div className="px-6 pb-6">
+            {/* ─── STEP 1: Destination ─── */}
+            {step === 1 && (
+              <div className="animate-fade-in">
+                <div className="text-center mb-5">
+                  <div className="w-12 h-12 bg-[#FF9B51]/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Plane size={24} className="text-[#FF9B51]" />
+                  </div>
+                  <h2 className="text-xl font-bold text-[#25343F]">I want to go...</h2>
+                  <p className="text-sm text-[#25343F]/50 mt-1">Where are you headed?</p>
+                </div>
                 <input
                   type="text"
-                  placeholder="Search specific location..."
-                  className="flex-1 p-3 border-2 border-[#BFC9D1]/30 rounded-xl bg-[#EAEFEF]/50 text-[#25343F] focus:border-[#FF9B51] outline-none text-sm"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  placeholder="e.g. Bangkok, Chiang Mai..."
+                  className="w-full p-3 border-2 border-[#BFC9D1]/30 rounded-xl bg-[#EAEFEF]/50 text-[#25343F] focus:border-[#FF9B51] focus:ring-2 focus:ring-[#FF9B51]/20 outline-none transition-all text-center text-lg"
+                  value={destination}
+                  onChange={(e) => setDestination(e.target.value)}
+                  autoFocus
                 />
                 <button
-                  onClick={handleSearch}
-                  disabled={isSearching}
-                  className="px-4 py-3 bg-[#FF9B51] text-white rounded-xl hover:bg-[#e8893f] transition-all font-medium text-sm disabled:opacity-50"
+                  onClick={() => setStep(2)}
+                  disabled={!canGoNext()}
+                  className="w-full mt-5 py-3 rounded-xl font-bold text-white transition-all duration-200 bg-[#FF9B51] hover:bg-[#e8893f] disabled:bg-[#BFC9D1] disabled:cursor-not-allowed shadow-lg hover:shadow-xl disabled:shadow-none flex items-center justify-center gap-2"
                 >
-                  {isSearching ? '...' : '🔍'}
+                  Next <ChevronRight size={18} />
                 </button>
               </div>
+            )}
 
-              {searchResults.length > 0 && (
-                <ul className="absolute z-20 w-full mt-1 bg-white border border-[#BFC9D1]/30 rounded-xl shadow-xl max-h-48 overflow-auto">
-                  {searchResults.map((r: any) => (
-                    <li
-                      key={r.place_id}
-                      onClick={() => handleSearchSelect(r)}
-                      className="px-4 py-3 hover:bg-[#FF9B51]/10 cursor-pointer text-sm text-[#25343F] border-b border-[#EAEFEF] last:border-b-0"
+            {/* ─── STEP 2: When? ─── */}
+            {step === 2 && (
+              <div className="animate-fade-in">
+                <div className="text-center mb-5">
+                  <div className="w-12 h-12 bg-[#FF9B51]/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Calendar size={24} className="text-[#FF9B51]" />
+                  </div>
+                  <h2 className="text-xl font-bold text-[#25343F]">When?</h2>
+                  <p className="text-sm text-[#25343F]/50 mt-1">Pick a day for your trip</p>
+                </div>
+
+                <div className="grid grid-cols-7 gap-1.5 mb-5">
+                  {next7Days.map((d) => (
+                    <button
+                      key={d.date}
+                      onClick={() => setSelectedDate(d.date)}
+                      className={`flex flex-col items-center py-2 px-1 rounded-xl text-xs font-medium transition-all duration-200 border-2 ${selectedDate === d.date
+                        ? 'border-[#FF9B51] bg-[#FF9B51]/10 text-[#FF9B51] shadow-md'
+                        : 'border-transparent bg-[#EAEFEF] text-[#25343F]/60 hover:bg-[#BFC9D1]/30'
+                        }`}
                     >
-                      📍 {r.display_name}
-                    </li>
+                      <span className="text-[10px] uppercase opacity-70">{d.weekday}</span>
+                      <span className="text-lg font-bold">{d.day}</span>
+                      <span className="text-[10px] opacity-60">{d.month}</span>
+                      {d.isToday && (
+                        <span className="w-1.5 h-1.5 bg-[#FF9B51] rounded-full mt-0.5" />
+                      )}
+                    </button>
                   ))}
-                </ul>
-              )}
-            </div>
+                </div>
 
-            <button
-              onClick={() => onLocationSelectRequest()}
-              className="w-full mb-3 py-3 rounded-xl font-semibold text-sm transition-all duration-200 border-2 border-dashed border-[#FF9B51]/40 text-[#FF9B51] bg-[#FF9B51]/5 hover:bg-[#FF9B51]/10"
-            >
-              🗺️ Select on Map
-            </button>
+                <div className="flex gap-2 mb-4">
+                  <button
+                    onClick={() => setTimeOption('flexible')}
+                    className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all duration-200 border-2 flex items-center justify-center gap-2 ${timeOption === 'flexible'
+                      ? 'border-[#FF9B51] bg-[#FF9B51]/10 text-[#FF9B51] shadow-md'
+                      : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 text-[#25343F]/60 hover:border-[#BFC9D1]'
+                      }`}
+                  >
+                    <Clock size={14} /> Flexible
+                  </button>
+                  <button
+                    onClick={() => setTimeOption('specific')}
+                    className={`flex-1 py-3 rounded-xl font-semibold text-sm transition-all duration-200 border-2 flex items-center justify-center gap-2 ${timeOption === 'specific'
+                      ? 'border-[#FF9B51] bg-[#FF9B51]/10 text-[#FF9B51] shadow-md'
+                      : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 text-[#25343F]/60 hover:border-[#BFC9D1]'
+                      }`}
+                  >
+                    <Clock size={14} /> Set time
+                  </button>
+                </div>
 
-            {locationName && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-800 animate-fade-in">
-                ✅ <strong>Selected:</strong> {locationName}
+                {timeOption === 'specific' && (
+                  <div className="mb-4 animate-fade-in">
+                    <input
+                      type="time"
+                      value={specificTime}
+                      onChange={(e) => setSpecificTime(e.target.value)}
+                      className="w-full p-3 border-2 border-[#BFC9D1]/30 rounded-xl bg-[#EAEFEF]/50 text-[#25343F] focus:border-[#FF9B51] outline-none text-center text-lg"
+                    />
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setStep(1)}
+                    className="flex-1 py-3 rounded-xl font-bold text-[#25343F]/60 bg-[#EAEFEF] hover:bg-[#BFC9D1]/30 transition-all flex items-center justify-center gap-2"
+                  >
+                    <ChevronLeft size={18} /> Back
+                  </button>
+                  <button
+                    onClick={() => setStep(3)}
+                    disabled={!canGoNext()}
+                    className="flex-1 py-3 rounded-xl font-bold text-white bg-[#FF9B51] hover:bg-[#e8893f] disabled:bg-[#BFC9D1] disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none flex items-center justify-center gap-2"
+                  >
+                    Next <ChevronRight size={18} />
+                  </button>
+                </div>
               </div>
             )}
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => setStep(2)}
-                className="flex-1 py-3 rounded-xl font-bold text-[#25343F]/60 bg-[#EAEFEF] hover:bg-[#BFC9D1]/30 transition-all"
-              >
-                ← Back
-              </button>
-              <button
-                onClick={handleSetLocation}
-                disabled={!canGoNext()}
-                className="flex-1 py-3 rounded-xl font-bold text-white bg-[#FF9B51] hover:bg-[#e8893f] disabled:bg-[#BFC9D1] disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none"
-              >
-                {locationLat != null && locationLon != null ? 'Next →' : 'Set Location →'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ─── STEP 4: Who can join? + Photos ─── */}
-        {step === 4 && (
-          <div className="animate-fade-in">
-            <div className="text-center mb-5">
-              <span className="text-3xl mb-2 block">👥</span>
-              <h2 className="text-xl font-bold text-[#25343F]">Final details</h2>
-              <p className="text-sm text-[#25343F]/50 mt-1">Set privacy & add photos</p>
-            </div>
-
-            <div className="flex flex-col gap-3 mb-5">
-              <button
-                onClick={() => setPrivacy('open')}
-                className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${
-                  privacy === 'open'
-                    ? 'border-[#FF9B51] bg-[#FF9B51]/10 shadow-md'
-                    : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 hover:border-[#BFC9D1]'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">🌍</span>
-                  <div>
-                    <div className="font-bold text-[#25343F]">Open</div>
-                    <div className="text-xs text-[#25343F]/50">Anyone can join</div>
+            {/* ─── STEP 3: Map Location ─── */}
+            {step === 3 && (
+              <div className="animate-fade-in">
+                <div className="text-center mb-5">
+                  <div className="w-12 h-12 bg-[#FF9B51]/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <MapPin size={24} className="text-[#FF9B51]" />
                   </div>
-                  {privacy === 'open' && (
-                    <span className="ml-auto text-[#FF9B51] text-lg">✓</span>
+                  <h2 className="text-xl font-bold text-[#25343F]">Add pin to map</h2>
+                  <p className="text-sm text-[#25343F]/50 mt-1">
+                    Search or tap the map to set your meetup point
+                  </p>
+                </div>
+
+                <div className="relative mb-3">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Search in Thailand..."
+                      className="flex-1 p-3 border-2 border-[#BFC9D1]/30 rounded-xl bg-[#EAEFEF]/50 text-[#25343F] focus:border-[#FF9B51] outline-none text-sm"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    />
+                    <button
+                      onClick={handleSearch}
+                      disabled={isSearching}
+                      className="px-4 py-3 bg-[#FF9B51] text-white rounded-xl hover:bg-[#e8893f] transition-all font-medium text-sm disabled:opacity-50"
+                    >
+                      {isSearching ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+                    </button>
+                  </div>
+
+                  {searchResults.length > 0 && (
+                    <ul className="absolute z-20 w-full mt-1 bg-white border border-[#BFC9D1]/30 rounded-xl shadow-xl max-h-48 overflow-auto">
+                      {searchResults.map((r: any) => (
+                        <li
+                          key={r.place_id}
+                          onClick={() => handleSearchSelect(r)}
+                          className="px-4 py-3 hover:bg-[#FF9B51]/10 cursor-pointer text-sm text-[#25343F] border-b border-[#EAEFEF] last:border-b-0 flex items-start gap-2"
+                        >
+                          <MapPin size={14} className="text-[#FF9B51] mt-0.5 flex-shrink-0" />
+                          <span>{r.display_name}</span>
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </div>
-              </button>
 
-              <button
-                onClick={() => setPrivacy('private')}
-                className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${
-                  privacy === 'private'
-                    ? 'border-[#FF9B51] bg-[#FF9B51]/10 shadow-md'
-                    : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 hover:border-[#BFC9D1]'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">🔒</span>
-                  <div>
-                    <div className="font-bold text-[#25343F]">Private</div>
-                    <div className="text-xs text-[#25343F]/50">Approval required</div>
+                <button
+                  onClick={() => onLocationSelectRequest()}
+                  className="w-full mb-3 py-3 rounded-xl font-semibold text-sm transition-all duration-200 border-2 border-dashed border-[#FF9B51]/40 text-[#FF9B51] bg-[#FF9B51]/5 hover:bg-[#FF9B51]/10 flex items-center justify-center gap-2"
+                >
+                  <MapIcon size={16} /> Select on Map
+                </button>
+
+                {locationName && (
+                  <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-800 animate-fade-in flex items-start gap-2">
+                    <Check size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
+                    <span><strong>Selected:</strong> {locationName}</span>
                   </div>
-                  {privacy === 'private' && (
-                    <span className="ml-auto text-[#FF9B51] text-lg">✓</span>
-                  )}
-                </div>
-              </button>
-            </div>
+                )}
 
-            <div className="mb-5">
-              <label className="block text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-2">
-                Audience
-              </label>
-              <button
-                onClick={() => setLadiesOnly((prev) => !prev)}
-                disabled={ladiesOnlyBlocked}
-                className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed ${
-                  ladiesOnly
-                    ? 'border-[#FF9B51] bg-[#FF9B51]/10 shadow-md'
-                    : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 hover:border-[#BFC9D1]'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">👩</span>
-                  <div>
-                    <div className="font-bold text-[#25343F]">Ladies Only</div>
-                    <div className="text-xs text-[#25343F]/50">Only women can join</div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setStep(2)}
+                    className="flex-1 py-3 rounded-xl font-bold text-[#25343F]/60 bg-[#EAEFEF] hover:bg-[#BFC9D1]/30 transition-all flex items-center justify-center gap-2"
+                  >
+                    <ChevronLeft size={18} /> Back
+                  </button>
+                  <button
+                    onClick={handleSetLocation}
+                    disabled={!canGoNext()}
+                    className="flex-1 py-3 rounded-xl font-bold text-white bg-[#FF9B51] hover:bg-[#e8893f] disabled:bg-[#BFC9D1] disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none flex items-center justify-center gap-2"
+                  >
+                    {locationLat != null && locationLon != null ? <>Next <ChevronRight size={18} /></> : <>Set Location <ChevronRight size={18} /></>}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ─── STEP 4: Who can join? + Photos ─── */}
+            {step === 4 && (
+              <div className="animate-fade-in">
+                <div className="text-center mb-5">
+                  <div className="w-12 h-12 bg-[#FF9B51]/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Users size={24} className="text-[#FF9B51]" />
                   </div>
-                  {ladiesOnly && (
-                    <span className="ml-auto text-[#FF9B51] text-lg">✓</span>
-                  )}
+                  <h2 className="text-xl font-bold text-[#25343F]">Final details</h2>
+                  <p className="text-sm text-[#25343F]/50 mt-1">Set privacy & add photos</p>
                 </div>
-              </button>
-              {ladiesOnlyBlocked && (
-                <p className="mt-2 text-xs text-[#25343F]/50">
-                  Only women can create ladies-only trips.
-                </p>
-              )}
-            </div>
 
-            {/* Photo Upload */}
-            <div className="mb-5">
-              <label className="block text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-2">
-                Photos (optional)
-              </label>
-              <label className="flex items-center justify-center py-3 px-4 border-2 border-dashed border-[#BFC9D1]/40 rounded-xl text-[#25343F]/50 text-sm cursor-pointer hover:border-[#FF9B51]/40 hover:bg-[#FF9B51]/5 transition-all">
-                📷 Add photos
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handlePhotoSelect}
-                  className="hidden"
-                />
-              </label>
-              {photoPreviewUrls.length > 0 && (
-                <div className="flex gap-2 mt-3 flex-wrap">
-                  {photoPreviewUrls.map((url, i) => (
-                    <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden group">
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                      <button
-                        onClick={() => removePhoto(i)}
-                        className="absolute top-0 right-0 bg-red-500 text-white w-5 h-5 text-xs rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        ✕
-                      </button>
+                <div className="flex flex-col gap-3 mb-5">
+                  <button
+                    onClick={() => setPrivacy('open')}
+                    className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${privacy === 'open'
+                      ? 'border-[#FF9B51] bg-[#FF9B51]/10 shadow-md'
+                      : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 hover:border-[#BFC9D1]'
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Globe size={22} className="text-[#FF9B51]" />
+                      <div>
+                        <div className="font-bold text-[#25343F]">Open</div>
+                        <div className="text-xs text-[#25343F]/50">Anyone can join</div>
+                      </div>
+                      {privacy === 'open' && (
+                        <Check size={18} className="ml-auto text-[#FF9B51]" />
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </button>
 
-            {/* Error */}
-            {submitError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
-                {submitError}
+                  <button
+                    onClick={() => setPrivacy('private')}
+                    className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${privacy === 'private'
+                      ? 'border-[#FF9B51] bg-[#FF9B51]/10 shadow-md'
+                      : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 hover:border-[#BFC9D1]'
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Lock size={22} className="text-[#FF9B51]" />
+                      <div>
+                        <div className="font-bold text-[#25343F]">Private</div>
+                        <div className="text-xs text-[#25343F]/50">Approval required</div>
+                      </div>
+                      {privacy === 'private' && (
+                        <Check size={18} className="ml-auto text-[#FF9B51]" />
+                      )}
+                    </div>
+                  </button>
+                </div>
+
+                <div className="mb-5">
+                  <label className="block text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-2">
+                    Audience
+                  </label>
+                  <button
+                    onClick={() => setLadiesOnly((prev) => !prev)}
+                    disabled={ladiesOnlyBlocked}
+                    className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed ${ladiesOnly
+                      ? 'border-[#FF9B51] bg-[#FF9B51]/10 shadow-md'
+                      : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 hover:border-[#BFC9D1]'
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Users size={22} className="text-pink-500" />
+                      <div>
+                        <div className="font-bold text-[#25343F]">Ladies Only</div>
+                        <div className="text-xs text-[#25343F]/50">Only women can join</div>
+                      </div>
+                      {ladiesOnly && (
+                        <Check size={18} className="ml-auto text-[#FF9B51]" />
+                      )}
+                    </div>
+                  </button>
+                  {ladiesOnlyBlocked && (
+                    <p className="mt-2 text-xs text-[#25343F]/50">
+                      Only women can create ladies-only trips.
+                    </p>
+                  )}
+                </div>
+
+                {/* Photo Upload */}
+                <div className="mb-5">
+                  <label className="block text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-2">
+                    Photos (optional)
+                  </label>
+                  <label className="flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-[#BFC9D1]/40 rounded-xl text-[#25343F]/50 text-sm cursor-pointer hover:border-[#FF9B51]/40 hover:bg-[#FF9B51]/5 transition-all">
+                    <Camera size={16} /> Add photos
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handlePhotoSelect}
+                      className="hidden"
+                    />
+                  </label>
+                  {photoPreviewUrls.length > 0 && (
+                    <div className="flex gap-2 mt-3 flex-wrap">
+                      {photoPreviewUrls.map((url, i) => (
+                        <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden group">
+                          <img src={url} alt="" className="w-full h-full object-cover" />
+                          <button
+                            onClick={() => removePhoto(i)}
+                            className="absolute top-0 right-0 bg-red-500 text-white w-5 h-5 text-xs rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Error */}
+                {submitError && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
+                    {submitError}
+                  </div>
+                )}
+
+                {/* Nav Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setStep(3)}
+                    className="flex-1 py-3 rounded-xl font-bold text-[#25343F]/60 bg-[#EAEFEF] hover:bg-[#BFC9D1]/30 transition-all flex items-center justify-center gap-2"
+                  >
+                    <ChevronLeft size={18} /> Back
+                  </button>
+                  <button
+                    onClick={handleAddToMap}
+                    disabled={isSubmitting}
+                    className="flex-1 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-[#FF9B51] to-[#e8893f] hover:from-[#e8893f] hover:to-[#d47a30] transition-all shadow-lg hover:shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Creating...</> : <><MapPin size={16} /> Add to map</>}
+                  </button>
+                </div>
               </div>
             )}
-
-            {/* Nav Buttons */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setStep(3)}
-                className="flex-1 py-3 rounded-xl font-bold text-[#25343F]/60 bg-[#EAEFEF] hover:bg-[#BFC9D1]/30 transition-all"
-              >
-                ← Back
-              </button>
-              <button
-                onClick={handleAddToMap}
-                disabled={isSubmitting}
-                className="flex-1 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-[#FF9B51] to-[#e8893f] hover:from-[#e8893f] hover:to-[#d47a30] transition-all shadow-lg hover:shadow-xl disabled:opacity-50"
-              >
-                {isSubmitting ? '⏳ Creating...' : '📌 Add to map'}
-              </button>
-            </div>
           </div>
-        )}
-      </div>
-      </>
+        </>
       )}
     </div>
   );

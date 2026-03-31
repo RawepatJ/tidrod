@@ -1,5 +1,6 @@
 'use client';
 import TripForm from './TripForm';
+import SearchTrip from './SearchTrip';
 
 interface TripData {
   destination: string;
@@ -17,6 +18,7 @@ interface SidebarProps {
   onLocationSelectRequest: () => void;
   onLocationSearch: (lat: number, lon: number, name: string) => void;
   onAddTrip: (trip: TripData) => void;
+  onTripSelect?: (tripId: string, lat: number, lon: number) => void;
   selectedLocationName?: string;
   selectedLat?: number | null;
   selectedLon?: number | null;
@@ -29,6 +31,7 @@ export default function Sidebar({
   onLocationSelectRequest,
   onLocationSearch,
   onAddTrip,
+  onTripSelect,
   selectedLocationName,
   selectedLat,
   selectedLon,
@@ -37,7 +40,7 @@ export default function Sidebar({
   onCancelSelection,
 }: SidebarProps) {
   return (
-    <div className="w-full lg:w-96 h-full flex flex-col gap-4 overflow-y-auto pr-2">
+    <div className="w-full lg:w-96 h-full flex flex-col gap-4 overflow-y-auto pr-2 p-4">
       <TripForm
         onLocationSelectRequest={onLocationSelectRequest}
         onLocationSearch={onLocationSearch}
@@ -49,6 +52,7 @@ export default function Sidebar({
         onConfirmSelection={onConfirmSelection}
         onCancelSelection={onCancelSelection}
       />
+      <SearchTrip onTripSelect={onTripSelect} />
     </div>
   );
 }
