@@ -43,12 +43,18 @@ export async function initDatabase(): Promise<void> {
       CREATE TABLE IF NOT EXISTS reports (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         reporter_id UUID REFERENCES users(id) ON DELETE SET NULL,
-        reported_id UUID REFERENCES users(id) ON DELETE SET NULL,
-        trip_id UUID REFERENCES trips(id) ON DELETE SET NULL,
+        target_type VARCHAR(50) NOT NULL DEFAULT 'TRIP',
+        target_id UUID,
         reason TEXT NOT NULL,
+        description TEXT,
         status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'resolved', 'ignored'
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+
+      -- Add missing columns for existing reports table if they dont exist
+      ALTER TABLE reports ADD COLUMN IF NOT EXISTS target_type VARCHAR(50) NOT NULL DEFAULT 'TRIP';
+      ALTER TABLE reports ADD COLUMN IF NOT EXISTS target_id UUID;
+      ALTER TABLE reports ADD COLUMN IF NOT EXISTS description TEXT;
 
       CREATE TABLE IF NOT EXISTS logs (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -57,12 +63,6 @@ export async function initDatabase(): Promise<void> {
         target_type VARCHAR(50), -- e.g., 'user', 'trip'
         target_id UUID,
         details JSONB,
-        reporter_id UUID REFERENCES users(id) ON DELETE CASCADE,
-        target_type VARCHAR(50) NOT NULL,
-        target_id UUID NOT NULL,
-        reason VARCHAR(255) NOT NULL,
-        description TEXT,
-        status VARCHAR(50) DEFAULT 'PENDING',
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
