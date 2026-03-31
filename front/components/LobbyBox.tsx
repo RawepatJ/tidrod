@@ -7,7 +7,12 @@ const MOCK_TRIPS = [
   { id: 3, driver: "Charlie", origin: "Airport", destination: "Main Square", time: "10:15 AM", seats: 3 },
 ];
 
+import React, { useState } from 'react';
+import { ShieldAlert } from 'lucide-react';
+import ReportModal from './ReportModal';
+
 export default function LobbyBox() {
+  const [reportTripId, setReportTripId] = useState<string | null>(null);
   return (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-3xl shadow-md border border-gray-200 dark:border-gray-700 h-full flex flex-col">
       <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white flex items-center gap-2">
@@ -31,12 +36,27 @@ export default function LobbyBox() {
                 <span className="text-xs text-gray-400">At:</span> {trip.time}
               </div>
             </div>
-            <button className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white py-1.5 rounded text-sm font-medium transition-colors">
-              Join Request
-            </button>
+            <div className="flex gap-2 w-full mt-3">
+              <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-1.5 rounded text-sm font-medium transition-colors">
+                Join Request
+              </button>
+              <button 
+                onClick={() => setReportTripId(trip.id.toString())}
+                className="px-3 bg-gray-200 dark:bg-gray-600 hover:bg-red-100 hover:text-red-500 text-gray-600 dark:text-gray-300 rounded transition-colors flex items-center justify-center"
+                title="Report Trip"
+              >
+                <ShieldAlert size={16} />
+              </button>
+            </div>>
           </div>
         ))}
       </div>
+      <ReportModal
+        isOpen={!!reportTripId}
+        onClose={() => setReportTripId(null)}
+        targetType="TRIP"
+        targetId={reportTripId || ''}
+      />
     </div>
   );
 }

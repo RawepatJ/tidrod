@@ -95,6 +95,15 @@ export async function getMessages(tripId: string, page = 1) {
     return apiFetch<any[]>(`/api/trips/${tripId}/messages?page=${page}`);
 }
 
+// --- Reports ---
+export async function submitReport(data: { targetType: string; targetId: string; reason: string; description?: string }, token: string) {
+    return apiFetch<any>('/api/reports', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        token,
+    });
+}
+
 // --- Token helpers ---
 export function getToken(): string | null {
     if (typeof window === 'undefined') return null;

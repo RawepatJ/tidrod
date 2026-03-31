@@ -3,6 +3,8 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { getMessages, getToken, getUser } from '@/lib/api';
+import { ShieldAlert, Flag } from 'lucide-react';
+import ReportModal from './ReportModal';
 
 interface Message {
   id: string;
@@ -24,6 +26,7 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
   const [input, setInput] = useState('');
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [reportTarget, setReportTarget] = useState<{ type: 'TRIP' | 'USER' | 'MESSAGE', id: string } | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentUser = getUser();
@@ -123,14 +126,23 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
           💬 Trip Chat
           <span className={`w-2 h-2 rounded-full ${connected ? 'bg-green-400' : 'bg-red-400'}`} />
         </h3>
-        {onLeave && (
+        <div className="flex items-center gap-2">
+          {onLeave && (
+            <button 
+              onClick={onLeave}
+              className="text-xs text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1 rounded-md transition-all"
+            >
+              Leave Chat
+            </button>
+          )}
           <button 
-            onClick={onLeave}
-            className="text-xs text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1 rounded-md transition-all"
+            onClick={() => setReportTarget({ type: 'TRIP', id: tripId })}
+            className="text-white/70 hover:text-red-400 p-1 rounded-md transition-all"
+            title="Report Trip"
           >
-            Leave Chat
+            <ShieldAlert size={16} />
           </button>
-        )}
+        </div>
       </div>
 
       {/* Messages */}
@@ -155,7 +167,16 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
                   }`}
                 >
                   {!isOwn && (
-                    <p className="text-xs font-semibold text-[#FF9B51] mb-0.5">{msg.username}</p>
+                    <div className="flex justify-between items-center mb-0.5 group/header">
+                       <p className="text-xs font-semibold text-[#FF9B51]">{msg.username}</p>
+                       <button 
+                         onClick={() => setReportTarget({ type: 'MESSAGE', id: msg.id })}
+                         className="opacity-0 group-hover/header:opacity-100 text-[#BFC9D1] hover:text-red-400 transition-opacity"
+                         title="Report Message"
+                       >
+                         <Flag size={12} />
+                       </button>
+                    </div>
                   )}
                   <p className="text-sm leading-relaxed break-words">{msg.content}</p>
                   <p className={`text-[10px] mt-1 ${isOwn ? 'text-white/60' : 'text-[#BFC9D1]'}`}>
@@ -190,6 +211,14 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
           </button>
         </div>
       </div>
+      {reportTarget && (
+        <ReportModal 
+          isOpen={!!reportTarget} 
+          onClose={() => setReportTarget(null)} 
+          targetType={reportTarget.type} 
+          targetId={reportTarget.id} 
+        />
+      )}
     </div>
   );
 }
