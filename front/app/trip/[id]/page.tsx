@@ -28,6 +28,7 @@ interface TripDetail {
   created_at: string;
   username: string;
   author_id: string;
+  ladiesOnly: boolean;
   photos: TripPhoto[] | null;
 }
 
@@ -138,6 +139,14 @@ export default function TripDetailPage() {
                         day: 'numeric',
                       })}
                     </span>
+                    {trip.ladiesOnly && (
+                      <>
+                        <span>•</span>
+                        <span className="flex items-center gap-1 bg-[#FF9B51]/10 text-[#FF9B51] px-2 py-0.5 rounded-md text-xs font-semibold">
+                          👩 Ladies Only
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
 

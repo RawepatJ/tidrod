@@ -65,7 +65,7 @@ export async function getTrip(id: string) {
 }
 
 export async function createTrip(
-    data: { title: string; description: string; latitude: number; longitude: number },
+    data: { title: string; description: string; latitude: number; longitude: number; ladiesOnly?: boolean },
     photos: File[],
     token: string
 ) {
@@ -74,6 +74,7 @@ export async function createTrip(
     formData.append('description', data.description);
     formData.append('latitude', String(data.latitude));
     formData.append('longitude', String(data.longitude));
+    formData.append('ladiesOnly', String(!!data.ladiesOnly));
     photos.forEach((photo) => formData.append('photos', photo));
 
     return apiFetch<any>('/api/trips', {

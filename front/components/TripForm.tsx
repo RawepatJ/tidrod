@@ -13,6 +13,7 @@ interface TripData {
   lon: number | null;
   locationName: string;
   privacy: 'open' | 'private';
+  ladiesOnly: boolean;
 }
 
 interface TripFormProps {
@@ -58,6 +59,7 @@ export default function TripForm({
   const [isSearching, setIsSearching] = useState(false);
   // Step 4
   const [privacy, setPrivacy] = useState<'open' | 'private'>('open');
+  const [ladiesOnly, setLadiesOnly] = useState(false);
   // Photos
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
@@ -165,6 +167,7 @@ export default function TripForm({
           description,
           latitude: locationLat,
           longitude: locationLon,
+          ladiesOnly,
         },
         photos,
         token
@@ -180,6 +183,7 @@ export default function TripForm({
         lon: locationLon,
         locationName,
         privacy,
+        ladiesOnly,
       });
 
       // Reset form
@@ -192,6 +196,7 @@ export default function TripForm({
       setLocationLat(null);
       setLocationLon(null);
       setPrivacy('open');
+      setLadiesOnly(false);
       setPhotos([]);
       setPhotoPreviewUrls([]);
     } catch (err: any) {
@@ -507,6 +512,31 @@ export default function TripForm({
                     <div className="text-xs text-[#25343F]/50">Approval required</div>
                   </div>
                   {privacy === 'private' && (
+                    <span className="ml-auto text-[#FF9B51] text-lg">✓</span>
+                  )}
+                </div>
+              </button>
+            </div>
+
+            <div className="mb-5">
+              <label className="block text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-2">
+                Audience
+              </label>
+              <button
+                onClick={() => setLadiesOnly((prev) => !prev)}
+                className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                  ladiesOnly
+                    ? 'border-[#FF9B51] bg-[#FF9B51]/10 shadow-md'
+                    : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 hover:border-[#BFC9D1]'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">👩</span>
+                  <div>
+                    <div className="font-bold text-[#25343F]">Ladies Only</div>
+                    <div className="text-xs text-[#25343F]/50">Only women can join</div>
+                  </div>
+                  {ladiesOnly && (
                     <span className="ml-auto text-[#FF9B51] text-lg">✓</span>
                   )}
                 </div>

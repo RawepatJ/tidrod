@@ -23,8 +23,11 @@ export async function initDatabase(): Promise<void> {
         description TEXT,
         latitude DOUBLE PRECISION NOT NULL,
         longitude DOUBLE PRECISION NOT NULL,
+        ladies_only BOOLEAN NOT NULL DEFAULT FALSE,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+
+      ALTER TABLE trips ADD COLUMN IF NOT EXISTS ladies_only BOOLEAN NOT NULL DEFAULT FALSE;
 
       CREATE TABLE IF NOT EXISTS trip_photos (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
