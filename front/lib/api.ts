@@ -111,6 +111,36 @@ export async function submitReport(data: { targetType: string; targetId: string;
     });
 }
 
+// --- User Profile ---
+export async function updateUserProfile(data: { username: string; bio: string; avatar_url?: string }, token: string) {
+    return apiFetch<{ user: any; message: string }>('/api/users/me', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+        token,
+    });
+}
+
+export async function getUserRating(userId: string) {
+    return apiFetch<{ user_id: string; total_ratings: number; average_rating: number }>(`/api/users/${userId}/rating`);
+}
+
+// --- Trip Ratings ---
+export async function getTripRating(tripId: string) {
+    return apiFetch<{ trip_id: string; total_ratings: number; average_rating: number }>(`/api/trips/${tripId}/rating`);
+}
+
+export async function getTripRatings(tripId: string) {
+    return apiFetch<{ ratings: any[] }>(`/api/trips/${tripId}/ratings`);
+}
+
+export async function rateTrip(tripId: string, rating: number, comment: string, token: string) {
+    return apiFetch<{ message: string; rating: any }>(`/api/trips/${tripId}/rating`, {
+        method: 'POST',
+        body: JSON.stringify({ rating, comment }),
+        token,
+    });
+}
+
 // --- Token helpers ---
 export function getToken(): string | null {
     if (typeof window === 'undefined') return null;

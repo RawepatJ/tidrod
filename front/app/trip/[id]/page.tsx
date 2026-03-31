@@ -4,12 +4,15 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { getTrip, getToken, getUser, deleteTrip } from '@/lib/api';
+import { getTrip, getToken, getUser, deleteTrip, getTripRating, getTripRatings } from '@/lib/api';
 import Chat from '@/components/Chat';
 import { SkeletonTripDetail } from '@/components/Skeleton';
 import { useToast } from '@/components/Toast';
 import { ShieldAlert } from 'lucide-react';
 import ReportModal from '@/components/ReportModal';
+import RatingStars from '@/components/RatingStars';
+import RateTripModal from '@/components/RateTripModal';
+import TripRatingsList from '@/components/TripRatingsList';
 
 const MapComponent = dynamic(() => import('@/components/Map'), {
   ssr: false,
@@ -44,6 +47,10 @@ export default function TripDetailPage() {
   const [hasJoined, setHasJoined] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [reportTripId, setReportTripId] = useState<string | null>(null);
+  const [tripRating, setTripRating] = useState<{ average_rating: number; total_ratings: number } | null>(null);
+  const [tripRatings, setTripRatings] = useState<any[]>([]);
+  const [loadingRatings, setLoadingRatings] = useState(false);
+  const [isRateModalOpen, setIsRateModalOpen] = useState(false);
   const user = getUser();
   const { addToast } = useToast();
 
@@ -52,6 +59,8 @@ export default function TripDetailPage() {
       try {
         const data = await getTrip(params.id as string);
         setTrip(data);
+        // Load ratings
+        loadRatings(params.id as string);
       } catch (err: any) {
         setError(err.message || 'Failed to load trip');
       } finally {
@@ -60,6 +69,22 @@ export default function TripDetailPage() {
     }
     loadTrip();
   }, [params.id]);
+
+  const loadRatings = async (tripId: string) => {
+    try {
+      setLoadingRatings(true);
+      const [ratingStats, ratingsList] = await Promise.all([
+        getTripRating(tripId),
+        getTripRatings(tripId),
+      ]);
+      setTripRating(ratingStats);
+      setTripRatings(ratingsList.ratings || []);
+    } catch (err) {
+      console.error('Failed to load ratings:', err);
+    } finally {
+      setLoadingRatings(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -206,6 +231,16 @@ export default function TripDetailPage() {
               </div>
             )}
 
+            {/* Ratings List */}
+            {tripRatings.length > 0 && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#BFC9D1]/20">
+                <h3 className="text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-4">
+                  All Ratings ({tripRatings.length})
+                </h3>
+                <TripRatingsList ratings={tripRatings} />
+              </div>
+            )}
+
             {/* Map */}
             <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#BFC9D1]/20">
               <h3 className="text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider px-6 pt-6 mb-4">Location</h3>
@@ -221,9 +256,10 @@ export default function TripDetailPage() {
 
           {/* Right Column: Chat */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24">
+            <div className="sticky top-24 space-y-4">
+              {/* Chat */}
               {hasJoined ? (
-                <Chat tripId={trip.id} onLeave={() => setHasJoined(false)} />
+                <Chat tripId={trip?.id || ''} onLeave={() => setHasJoined(false)} />
               ) : (
                 <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-[#BFC9D1]/20">
                   <div className="w-16 h-16 bg-[#FF9B51]/10 text-[#FF9B51] rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
@@ -249,6 +285,85 @@ export default function TripDetailPage() {
                   >
                     Join Trip Chat
                   </button>
+                </div>
+              )}
+
+              {/* Rating Section */}
+              {trip && (
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#BFC9D1]/20">
+                  <h3 className="text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-4">Trip Rating</h3>
+                  
+                  <div className="mb-6">
+                    {tripRating && tripRating.total_ratings > 0 ? (
+                      <div className="space-y-2">
+                        <RatingStars
+                          rating={tripRating.average_rating}
+                          count={tripRating.total_ratings}
+                          size="lg"
+                        />
+                        <p className="text-xs text-[#25343F]/50">
+                          Based on {tripRating.total_ratings} rating{tripRating.total_ratings !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-[#25343F]/60">No ratings yet</p>
+                    )}
+                  </div>
+
+                  {/* Rate Button */}
+                  {user && user.id !== trip.author_id && (
+                    <button
+                      onClick={() => setIsRateModalOpen(true)}
+                      className="w-full py-2.5 px-4 bg-[#FF9B51] hover:bg-[#e8893f] text-white rounded-lg font-semibold transition-all shadow-md text-sm"
+                    >
+                      ⭐ Rate This Trip
+                    </button>
+                  )}
+                  {user?.id === trip.author_id && (
+                    <p className="text-xs text-[#25343F]/50 text-center py-2">
+                      You can't rate your own trip
+                    </p>
+                  )}
+                  {!user && (
+                    <button
+                      onClick={() => addToast('Please login to rate', 'error')}
+                      className="w-full py-2.5 px-4 bg-[#EAEFEF] text-[#25343F] rounded-lg font-semibold transition-all text-sm opacity-50 cursor-not-allowed"
+                    >
+                      ⭐ Rate This Trip
+                    </button>
+                  )}
+
+                  {/* Show Recent Ratings */}
+                  {tripRatings.length > 0 && (
+                    <div className="mt-6 pt-6 border-t border-[#BFC9D1]/20">
+                      <p className="text-xs font-semibold text-[#25343F]/40 uppercase tracking-wider mb-3">
+                        Recent Ratings
+                      </p>
+                      <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                        {tripRatings.slice(0, 5).map((rating) => (
+                          <div key={rating.id} className="bg-[#EAEFEF]/50 rounded-lg p-3">
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <p className="font-medium text-xs text-[#25343F]">{rating.username}</p>
+                              <RatingStars rating={rating.rating} size="sm" />
+                            </div>
+                            {rating.comment && (
+                              <p className="text-xs text-[#25343F]/70 line-clamp-2">
+                                {rating.comment}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      {tripRatings.length > 5 && (
+                        <button
+                          onClick={() => {}}
+                          className="text-xs text-[#FF9B51] hover:text-[#e8893f] mt-3 font-medium"
+                        >
+                          View all ({tripRatings.length})
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -285,6 +400,21 @@ export default function TripDetailPage() {
         targetType="TRIP"
         targetId={reportTripId || ''}
       />
+      {/* Rating Modal */}
+      {trip && (
+        <RateTripModal
+          isOpen={isRateModalOpen}
+          onClose={() => setIsRateModalOpen(false)}
+          tripId={trip.id}
+          tripTitle={trip.title}
+          token={getToken() || ''}
+          onSuccess={() => {
+            loadRatings(trip.id);
+            setIsRateModalOpen(false);
+            addToast('Rating submitted successfully!', 'success');
+          }}
+        />
+      )}
     </main>
   );
 }

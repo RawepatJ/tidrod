@@ -11,6 +11,8 @@ export async function initDatabase(): Promise<void> {
         password_hash VARCHAR(255) NOT NULL,
         role VARCHAR(20) DEFAULT 'user',
         gender VARCHAR(20) NOT NULL DEFAULT 'prefer_not',
+        bio TEXT DEFAULT '',
+        avatar_url TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
@@ -71,11 +73,27 @@ export async function initDatabase(): Promise<void> {
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS trip_ratings (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        trip_id UUID REFERENCES trips(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+        comment TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(trip_id, user_id)
+      );
+
       CREATE INDEX IF NOT EXISTS idx_trips_location ON trips (latitude, longitude);
       CREATE INDEX IF NOT EXISTS idx_messages_trip ON messages (trip_id, created_at);
       CREATE INDEX IF NOT EXISTS idx_trip_photos_trip ON trip_photos (trip_id);
       CREATE INDEX IF NOT EXISTS idx_reports_status ON reports (status);
       CREATE INDEX IF NOT EXISTS idx_logs_action ON logs (action);
+      CREATE INDEX IF NOT EXISTS idx_trip_ratings_trip ON trip_ratings (trip_id);
+      CREATE INDEX IF NOT EXISTS idx_trip_ratings_user ON trip_ratings (user_id);
+
+      -- Add profile columns if they don't exist
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT '';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
     `);
         console.log('✅ Database tables initialized');
     } catch (err) {
