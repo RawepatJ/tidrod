@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession } from "./SessionProvider";
+import { Map, Home, Shield, LogOut, User } from "lucide-react";
+import NotificationBell from "./NotificationBell";
 
 export default function Header() {
   const router = useRouter();
@@ -27,24 +29,27 @@ export default function Header() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex gap-8 mx-10 items-center">
-          <Link
-            href="/home"
-            className={`text-sm font-medium transition-colors ${isActive('/home') ? 'text-[#FF9B51]' : 'text-[#25343F]/70 hover:text-[#FF9B51]'}`}
-          >
-            Map
-          </Link>
+        <nav className="flex gap-6 mx-10 items-center">
           <Link
             href="/"
-            className={`text-sm font-medium transition-colors ${isActive('/') ? 'text-[#FF9B51]' : 'text-[#25343F]/70 hover:text-[#FF9B51]'}`}
+            className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${isActive('/') ? 'text-[#FF9B51]' : 'text-[#25343F]/70 hover:text-[#FF9B51]'}`}
           >
+            <Home size={16} />
             Home
+          </Link>
+          <Link
+            href="/home"
+            className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${isActive('/home') ? 'text-[#FF9B51]' : 'text-[#25343F]/70 hover:text-[#FF9B51]'}`}
+          >
+            <Map size={16} />
+            Map
           </Link>
           {user?.role === 'admin' && (
             <Link
               href="/admin"
-              className={`text-sm font-medium transition-colors ${isActive('/admin') ? 'text-[#FF9B51]' : 'text-[#25343F]/70 hover:text-[#FF9B51]'}`}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${isActive('/admin') ? 'text-[#FF9B51]' : 'text-[#25343F]/70 hover:text-[#FF9B51]'}`}
             >
+              <Shield size={16} />
               Admin
             </Link>
           )}
@@ -53,7 +58,10 @@ export default function Header() {
           {isLoading ? (
             <div className="w-20 h-8 bg-[#EAEFEF] rounded-full animate-pulse" />
           ) : user ? (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              {/* Notification Bell */}
+              <NotificationBell />
+
               <Link
                 href="/profile"
                 className={`flex items-center gap-2 text-sm font-medium transition-colors ${isActive('/profile') ? 'text-[#FF9B51]' : 'text-[#25343F]/60 hover:text-[#FF9B51]'}`}
@@ -65,9 +73,10 @@ export default function Header() {
               </Link>
               <button
                 onClick={handleSignOut}
-                className="px-4 py-1.5 text-sm rounded-full bg-[#25343F] text-white hover:bg-[#25343F]/80 transition-colors"
+                className="p-2 text-[#25343F]/50 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                title="Sign Out"
               >
-                Sign Out
+                <LogOut size={18} />
               </button>
             </div>
           ) : (

@@ -7,13 +7,13 @@ import Sidebar from '@/components/Sidebar';
 import { getMarkers, getTrip } from '@/lib/api';
 import { MarkerData } from '@/components/Map';
 import { useToast } from '@/components/Toast';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, MapPin, User, Calendar, Users, X } from 'lucide-react';
 import ReportModal from '@/components/ReportModal';
 
 const MapComponent = dynamic(() => import('@/components/Map'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full bg-[#EAEFEF] animate-pulse flex items-center justify-center">
+    <div className="w-full h-full bg-[#1a1a2e] animate-pulse flex items-center justify-center">
       <div className="text-center">
         <div className="w-10 h-10 border-4 border-[#FF9B51] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         <p className="text-[#BFC9D1] text-sm">Loading Map...</p>
@@ -61,7 +61,7 @@ export default function HomePage() {
         }))
       );
     } catch (err) {
-      // Silently fail — API might not be running yet
+      // Silently fail
     }
   }, [selectionMode]);
 
@@ -83,40 +83,40 @@ export default function HomePage() {
     }
   }, [addToast]);
 
-  // Enter map selection mode (Step 3 pin drop)
+  // Search trip select — fly to location and open popup
+  const handleTripSelect = useCallback((tripId: string, lat: number, lon: number) => {
+    setSearchLocation({ lat, lon });
+    handleMarkerClick(tripId);
+  }, [handleMarkerClick]);
+
   const handleLocationSelectRequest = () => {
     setSelectionMode(true);
   };
 
-  // When user searches and selects a location in Step 3 (from Nominatim)
   const handleLocationSearch = (lat: number, lon: number, name: string) => {
     setPendingLocationName(name);
     setPendingLat(lat);
     setPendingLon(lon);
-    // Fly to location on map
     setSearchLocation({ lat, lon });
   };
 
-  // Called continuously as map moves while in selection mode (center-pin)
   const handleMapLocationSelect = useCallback((lat: number, lon: number, locationName?: string) => {
     setPendingLat(lat);
     setPendingLon(lon);
     if (locationName) {
       setPendingLocationName(locationName);
     } else {
-      setPendingLocationName(`📍 ${lat.toFixed(4)}, ${lon.toFixed(4)}`);
+      setPendingLocationName(`${lat.toFixed(4)}, ${lon.toFixed(4)}`);
     }
   }, []);
 
-  // Confirm location from map selection
   const handleConfirmSelection = () => {
     setSelectionMode(false);
     if (pendingLat != null && pendingLon != null) {
-      addToast('Location selected! 📍', 'success', 2000);
+      addToast('Location selected!', 'success', 2000);
     }
   };
 
-  // Cancel map selection
   const handleCancelSelection = () => {
     setPendingLocationName('');
     setPendingLat(null);
@@ -124,22 +124,22 @@ export default function HomePage() {
     setSelectionMode(false);
   };
 
-  // Trip created
   const handleAddTrip = (trip: TripData) => {
     setPendingLocationName('');
     setPendingLat(null);
     setPendingLon(null);
-    addToast('Trip added to the map! 🎉', 'success');
+    addToast('Trip added to the map!', 'success');
   };
 
   return (
     <main className="flex flex-col lg:flex-row flex-1 w-full bg-[#EAEFEF] p-4 pt-0 gap-4 overflow-hidden pt-22">
       {/* Sidebar */}
-      <section className="w-full lg:w-auto flex-none z-10">
+      <section className="fixed w-full lg:w-auto flex-none z-10">
         <Sidebar
           onLocationSelectRequest={handleLocationSelectRequest}
           onLocationSearch={handleLocationSearch}
           onAddTrip={handleAddTrip}
+          onTripSelect={handleTripSelect}
           selectedLocationName={pendingLocationName}
           selectedLat={pendingLat}
           selectedLon={pendingLon}
@@ -150,7 +150,7 @@ export default function HomePage() {
       </section>
 
       {/* Map */}
-      <section className="flex-1 w-full h-full rounded-xl overflow-hidden shadow-2xl border border-[#BFC9D1]/30 relative z-0">
+      <section className="flex-1 w-full h-full rounded-3xl overflow-hidden shadow-2xl border border-[#BFC9D1]/30 relative z-0">
         <MapComponent
           markers={markers}
           selectionMode={selectionMode ? 'destination' : null}
@@ -163,18 +163,11 @@ export default function HomePage() {
 
         {/* Selection Mode Overlay */}
         {selectionMode && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-[#25343F]/90 backdrop-blur-sm text-white px-5 py-2.5 rounded-full shadow-lg z-20 font-medium text-sm">
-            🗺️ Move the map to position the pin
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-[#25343F]/90 backdrop-blur-sm text-white px-5 py-2.5 rounded-full shadow-lg z-20 font-medium text-sm flex items-center gap-2">
+            <MapPin size={16} /> Move the map to position the pin
           </div>
         )}
 
-        {/* Map Info */}
-        {!selectionMode && (
-          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-lg z-10 pointer-events-none border border-[#BFC9D1]/20">
-            <h1 className="text-sm font-bold text-[#25343F]">TidRod Map View</h1>
-            <p className="text-xs text-[#25343F]/50">Click a marker to view trip details</p>
-          </div>
-        )}
 
         {/* Trip Detail Popup */}
         {selectedTripId && (
@@ -186,7 +179,7 @@ export default function HomePage() {
               </h2>
               <div className="flex items-center gap-1 -mr-2">
                 {!loadingTrip && tripDetail && (
-                  <button 
+                  <button
                     onClick={() => setReportTripId(tripDetail.id)}
                     className="text-red-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-md transition-colors flex items-center justify-center"
                     title="Report this Trip"
@@ -194,16 +187,16 @@ export default function HomePage() {
                     <ShieldAlert size={18} />
                   </button>
                 )}
-                <button 
+                <button
                   onClick={() => { setSelectedTripId(null); setTripDetail(null); }}
                   className="text-[#25343F]/50 hover:text-[#FF9B51] transition-colors p-2"
                   aria-label="Close trip"
                 >
-                  ✕
+                  <X size={18} />
                 </button>
               </div>
             </div>
-            
+
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-4">
               {loadingTrip ? (
@@ -214,20 +207,29 @@ export default function HomePage() {
                 </div>
               ) : tripDetail ? (
                 <div className="space-y-4">
-                  <div className="text-xs font-medium text-[#25343F]/70 flex items-center gap-2">
-                    <span className="bg-[#EAEFEF] px-2 py-1 rounded-md">👤 {tripDetail.username}</span>
-                    <span className="bg-[#EAEFEF] px-2 py-1 rounded-md">📅 {new Date(tripDetail.created_at).toLocaleDateString()}</span>
+                  <div className="text-xs font-medium text-[#25343F]/70 flex items-center gap-2 flex-wrap">
+                    <span className="bg-[#EAEFEF] px-2 py-1 rounded-md flex items-center gap-1">
+                      <User size={12} /> {tripDetail.username}
+                    </span>
+                    <span className="bg-[#EAEFEF] px-2 py-1 rounded-md flex items-center gap-1">
+                      <Calendar size={12} /> {new Date(tripDetail.created_at).toLocaleDateString()}
+                    </span>
                     {tripDetail.ladiesOnly && (
-                      <span className="bg-[#FF9B51]/10 text-[#FF9B51] px-2 py-1 rounded-md font-semibold">
-                        👩 Ladies Only
+                      <span className="bg-[#FF9B51]/10 text-[#FF9B51] px-2 py-1 rounded-md font-semibold flex items-center gap-1">
+                        <Users size={12} /> Ladies Only
+                      </span>
+                    )}
+                    {tripDetail.status === 'ended' && (
+                      <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-semibold text-xs">
+                        Ended
                       </span>
                     )}
                   </div>
-                  
+
                   {tripDetail.photos && tripDetail.photos.length > 0 && (
                     <div className="aspect-video w-full rounded-lg overflow-hidden relative shadow-sm border border-[#BFC9D1]/20">
-                      <img 
-                        src={tripDetail.photos[0].image_url} 
+                      <img
+                        src={tripDetail.photos[0].image_url}
                         alt="Trip cover"
                         className="w-full h-full object-cover"
                       />
@@ -242,7 +244,7 @@ export default function HomePage() {
                   <div className="mt-4">
                     <p className="text-[#25343F]/80 text-sm whitespace-pre-wrap leading-relaxed">{tripDetail.description}</p>
                   </div>
-                  
+
                   <button
                     onClick={() => router.push(`/trip/${selectedTripId}`)}
                     className="w-full mt-6 py-3 bg-[#FF9B51]/10 border border-[#FF9B51]/30 text-[#FF9B51] font-semibold rounded-lg hover:bg-[#FF9B51] hover:text-white transition-all shadow-sm"
