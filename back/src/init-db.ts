@@ -10,11 +10,13 @@ export async function initDatabase(): Promise<void> {
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         role VARCHAR(20) DEFAULT 'user',
+        gender VARCHAR(20) NOT NULL DEFAULT 'prefer_not',
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
       -- Add role column to existing users if they don't have it
       ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'user';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS gender VARCHAR(20) NOT NULL DEFAULT 'prefer_not';
 
       CREATE TABLE IF NOT EXISTS trips (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -23,8 +25,11 @@ export async function initDatabase(): Promise<void> {
         description TEXT,
         latitude DOUBLE PRECISION NOT NULL,
         longitude DOUBLE PRECISION NOT NULL,
+        ladies_only BOOLEAN NOT NULL DEFAULT FALSE,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
+
+      ALTER TABLE trips ADD COLUMN IF NOT EXISTS ladies_only BOOLEAN NOT NULL DEFAULT FALSE;
 
       CREATE TABLE IF NOT EXISTS trip_photos (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

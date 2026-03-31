@@ -10,6 +10,7 @@ interface TripData {
   lon: number | null;
   locationName: string;
   privacy: 'open' | 'private';
+  ladiesOnly: boolean;
 }
 
 interface SidebarProps {

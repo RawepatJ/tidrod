@@ -13,6 +13,7 @@ interface TripData {
   lon: number | null;
   locationName: string;
   privacy: 'open' | 'private';
+  ladiesOnly: boolean;
 }
 
 interface TripFormProps {
@@ -42,6 +43,8 @@ export default function TripForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { addToast } = useToast();
+  const user = getUser();
+  const ladiesOnlyBlocked = !!user && user.gender !== 'female';
 
   // Step 1
   const [destination, setDestination] = useState('');
@@ -58,6 +61,7 @@ export default function TripForm({
   const [isSearching, setIsSearching] = useState(false);
   // Step 4
   const [privacy, setPrivacy] = useState<'open' | 'private'>('open');
+  const [ladiesOnly, setLadiesOnly] = useState(false);
   // Photos
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
@@ -152,6 +156,12 @@ export default function TripForm({
       return;
     }
 
+    if (ladiesOnly && ladiesOnlyBlocked) {
+      setSubmitError('Only women can create ladies-only trips');
+      addToast('Only women can create ladies-only trips', 'error');
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitError(null);
 
@@ -165,6 +175,7 @@ export default function TripForm({
           description,
           latitude: locationLat,
           longitude: locationLon,
+          ladiesOnly,
         },
         photos,
         token
@@ -180,6 +191,7 @@ export default function TripForm({
         lon: locationLon,
         locationName,
         privacy,
+        ladiesOnly,
       });
 
       // Reset form
@@ -192,6 +204,7 @@ export default function TripForm({
       setLocationLat(null);
       setLocationLon(null);
       setPrivacy('open');
+      setLadiesOnly(false);
       setPhotos([]);
       setPhotoPreviewUrls([]);
     } catch (err: any) {
@@ -511,6 +524,37 @@ export default function TripForm({
                   )}
                 </div>
               </button>
+            </div>
+
+            <div className="mb-5">
+              <label className="block text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-2">
+                Audience
+              </label>
+              <button
+                onClick={() => setLadiesOnly((prev) => !prev)}
+                disabled={ladiesOnlyBlocked}
+                className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed ${
+                  ladiesOnly
+                    ? 'border-[#FF9B51] bg-[#FF9B51]/10 shadow-md'
+                    : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 hover:border-[#BFC9D1]'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">👩</span>
+                  <div>
+                    <div className="font-bold text-[#25343F]">Ladies Only</div>
+                    <div className="text-xs text-[#25343F]/50">Only women can join</div>
+                  </div>
+                  {ladiesOnly && (
+                    <span className="ml-auto text-[#FF9B51] text-lg">✓</span>
+                  )}
+                </div>
+              </button>
+              {ladiesOnlyBlocked && (
+                <p className="mt-2 text-xs text-[#25343F]/50">
+                  Only women can create ladies-only trips.
+                </p>
+              )}
             </div>
 
             {/* Photo Upload */}

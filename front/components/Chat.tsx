@@ -5,6 +5,7 @@ import { io, Socket } from 'socket.io-client';
 import { getMessages, getToken, getUser } from '@/lib/api';
 import { ShieldAlert, Flag } from 'lucide-react';
 import ReportModal from './ReportModal';
+import { useToast } from '@/components/Toast';
 
 interface Message {
   id: string;
@@ -30,6 +31,7 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentUser = getUser();
+  const { addToast } = useToast();
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -78,6 +80,12 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
       setConnected(false);
     });
 
+    socket.on('error_message', (payload: { error?: string }) => {
+      if (payload?.error) {
+        addToast(payload.error, 'error');
+      }
+    });
+
     socketRef.current = socket;
 
     return () => {
@@ -85,7 +93,7 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [tripId]);
+  }, [tripId, addToast]);
 
   // Auto-scroll on new message
   useEffect(() => {

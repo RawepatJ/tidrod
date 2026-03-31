@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [gender, setGender] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +36,12 @@ export default function LoginPage() {
           setIsLoading(false);
           return;
         }
-        const data = await registerUser(name, email, password);
+        if (!gender) {
+          setError("Gender is required");
+          setIsLoading(false);
+          return;
+        }
+        const data = await registerUser(name, email, password, gender);
         login(data.token);
         addToast('Account created successfully! 🎉 Welcome to TidRod!', 'success', 5000);
         router.push("/home");
@@ -120,6 +126,28 @@ export default function LoginPage() {
                   required={!isLogin}
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-[#BFC9D1]/50 focus:outline-none focus:ring-2 focus:ring-[#FF9B51]/50 focus:border-[#FF9B51]/50 transition-all"
                 />
+              </div>
+            )}
+
+            {!isLogin && (
+              <div>
+                <label htmlFor="gender" className="block text-sm text-[#BFC9D1] mb-2">
+                  Gender
+                </label>
+                <select
+                  id="gender"
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  required={!isLogin}
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#FF9B51]/50 focus:border-[#FF9B51]/50 transition-all"
+                >
+                  <option value="" disabled className="text-[#25343F]">
+                    Select gender
+                  </option>
+                  <option value="female" className="text-[#25343F]">Female</option>
+                  <option value="male" className="text-[#25343F]">Male</option>
+                  <option value="prefer_not" className="text-[#25343F]">Prefer not to say</option>
+                </select>
               </div>
             )}
 

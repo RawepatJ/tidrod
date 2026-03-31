@@ -8,6 +8,7 @@ interface User {
   username: string;
   email: string;
   role: string;
+  gender?: string;
 }
 
 interface SessionContextType {

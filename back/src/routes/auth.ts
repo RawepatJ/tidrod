@@ -8,15 +8,22 @@ const router = Router();
 // POST /api/auth/register
 router.post('/register', async (req: Request, res: Response): Promise<void> => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, gender } = req.body;
+        const normalizedGender = String(gender || '').toLowerCase();
+        const allowedGenders = new Set(['female', 'male', 'prefer_not']);
 
-        if (!username || !email || !password) {
-            res.status(400).json({ error: 'Username, email, and password are required' });
+        if (!username || !email || !password || !normalizedGender) {
+            res.status(400).json({ error: 'Username, email, password, and gender are required' });
             return;
         }
 
         if (password.length < 8) {
             res.status(400).json({ error: 'Password must be at least 8 characters' });
+            return;
+        }
+
+        if (!allowedGenders.has(normalizedGender)) {
+            res.status(400).json({ error: 'Invalid gender selection' });
             return;
         }
 
@@ -30,19 +37,19 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
         const password_hash = await bcrypt.hash(password, 12);
 
         const result = await pool.query(
-            'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING id, username, email, role, created_at',
-            [username, email, password_hash]
+            'INSERT INTO users (username, email, password_hash, gender) VALUES ($1, $2, $3, $4) RETURNING id, username, email, role, gender, created_at',
+            [username, email, password_hash, normalizedGender]
         );
 
         const user = result.rows[0];
         const token = jwt.sign(
-            { id: user.id, email: user.email, username: user.username, role: user.role },
+            { id: user.id, email: user.email, username: user.username, role: user.role, gender: user.gender },
             process.env.JWT_SECRET || 'fallback_secret',
             { expiresIn: '7d' }
         );
 
         res.status(201).json({
-            user: { id: user.id, username: user.username, email: user.email, role: user.role, created_at: user.created_at },
+            user: { id: user.id, username: user.username, email: user.email, role: user.role, gender: user.gender, created_at: user.created_at },
             token,
         });
     } catch (err) {
@@ -75,13 +82,13 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
         }
 
         const token = jwt.sign(
-            { id: user.id, email: user.email, username: user.username, role: user.role },
+            { id: user.id, email: user.email, username: user.username, role: user.role, gender: user.gender },
             process.env.JWT_SECRET || 'fallback_secret',
             { expiresIn: '7d' }
         );
 
         res.json({
-            user: { id: user.id, username: user.username, email: user.email, role: user.role, created_at: user.created_at },
+            user: { id: user.id, username: user.username, email: user.email, role: user.role, gender: user.gender, created_at: user.created_at },
             token,
         });
     } catch (err) {

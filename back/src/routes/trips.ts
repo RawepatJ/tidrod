@@ -14,9 +14,10 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
         const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
         const offset = (page - 1) * limit;
 
-        const result = await pool.query(
-            `SELECT t.id, t.title, t.description, t.latitude, t.longitude, t.created_at,
-              u.username, u.id as user_id,
+                const result = await pool.query(
+                        `SELECT t.id, t.title, t.description, t.latitude, t.longitude, t.created_at,
+                            t.ladies_only as "ladiesOnly",
+                            u.username, u.id as user_id,
               (SELECT json_agg(json_build_object('id', tp.id, 'image_url', tp.image_url))
                FROM trip_photos tp WHERE tp.trip_id = t.id) as photos
        FROM trips t
@@ -44,15 +45,17 @@ router.get('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
 
-        const result = await pool.query(
-            `SELECT t.*, u.username, u.id as author_id,
-              (SELECT json_agg(json_build_object('id', tp.id, 'image_url', tp.image_url))
-               FROM trip_photos tp WHERE tp.trip_id = t.id) as photos
-       FROM trips t
-       JOIN users u ON t.user_id = u.id
-       WHERE t.id = $1`,
-            [id]
-        );
+                const result = await pool.query(
+                        `SELECT t.id, t.user_id, t.title, t.description, t.latitude, t.longitude, t.created_at,
+                            t.ladies_only as "ladiesOnly",
+                            u.username, u.id as author_id,
+                            (SELECT json_agg(json_build_object('id', tp.id, 'image_url', tp.image_url))
+                             FROM trip_photos tp WHERE tp.trip_id = t.id) as photos
+             FROM trips t
+             JOIN users u ON t.user_id = u.id
+             WHERE t.id = $1`,
+                        [id]
+                );
 
         if (result.rows.length === 0) {
             res.status(404).json({ error: 'Trip not found' });
@@ -70,18 +73,31 @@ router.get('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
 router.post('/', authMiddleware, upload.array('photos', 10), async (req: AuthRequest, res: Response): Promise<void> => {
     const client = await pool.connect();
     try {
-        const { title, description, latitude, longitude } = req.body;
+        const { title, description, latitude, longitude, ladiesOnly } = req.body;
+        const isLadiesOnly = ladiesOnly === 'true' || ladiesOnly === true;
 
         if (!title || latitude == null || longitude == null) {
             res.status(400).json({ error: 'Title, latitude, and longitude are required' });
             return;
         }
 
+        if (isLadiesOnly) {
+            const genderResult = await client.query('SELECT gender FROM users WHERE id = $1', [req.user!.id]);
+            if (genderResult.rows.length === 0) {
+                res.status(403).json({ error: 'User not found' });
+                return;
+            }
+            if (genderResult.rows[0].gender !== 'female') {
+                res.status(403).json({ error: 'Only women can create ladies-only trips' });
+                return;
+            }
+        }
+
         await client.query('BEGIN');
 
         const tripResult = await client.query(
-            'INSERT INTO trips (user_id, title, description, latitude, longitude) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [req.user!.id, title, description || '', parseFloat(latitude), parseFloat(longitude)]
+            'INSERT INTO trips (user_id, title, description, latitude, longitude, ladies_only) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, user_id, title, description, latitude, longitude, created_at, ladies_only as "ladiesOnly"',
+            [req.user!.id, title, description || '', parseFloat(latitude), parseFloat(longitude), isLadiesOnly]
         );
 
         const trip = tripResult.rows[0];

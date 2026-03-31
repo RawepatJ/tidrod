@@ -10,7 +10,7 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res: Response): Promi
         const userId = req.user!.id;
 
         const userResult = await pool.query(
-            'SELECT id, username, email, created_at FROM users WHERE id = $1',
+            'SELECT id, username, email, gender, created_at FROM users WHERE id = $1',
             [userId]
         );
 

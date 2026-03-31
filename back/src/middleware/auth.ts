@@ -7,6 +7,7 @@ export interface AuthRequest extends Request {
         email: string;
         username: string;
         role: string;
+        gender: string;
     };
 }
 
@@ -24,6 +25,7 @@ export function authMiddleware(req: AuthRequest, res: Response, next: NextFuncti
             email: string;
             username: string;
             role: string;
+            gender: string;
         };
         req.user = decoded;
         next();

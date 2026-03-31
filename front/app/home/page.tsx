@@ -31,6 +31,7 @@ interface TripData {
   lon: number | null;
   locationName: string;
   privacy: 'open' | 'private';
+  ladiesOnly: boolean;
 }
 
 export default function HomePage() {
@@ -216,6 +217,11 @@ export default function HomePage() {
                   <div className="text-xs font-medium text-[#25343F]/70 flex items-center gap-2">
                     <span className="bg-[#EAEFEF] px-2 py-1 rounded-md">👤 {tripDetail.username}</span>
                     <span className="bg-[#EAEFEF] px-2 py-1 rounded-md">📅 {new Date(tripDetail.created_at).toLocaleDateString()}</span>
+                    {tripDetail.ladiesOnly && (
+                      <span className="bg-[#FF9B51]/10 text-[#FF9B51] px-2 py-1 rounded-md font-semibold">
+                        👩 Ladies Only
+                      </span>
+                    )}
                   </div>
                   
                   {tripDetail.photos && tripDetail.photos.length > 0 && (

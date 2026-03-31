@@ -32,17 +32,49 @@ export function setupSocket(httpServer: HttpServer): Server {
             next(new Error('Invalid token'));
         }
     });
-    
+
+    const canAccessTrip = async (tripId: string, userId: string) => {
+        const tripResult = await pool.query('SELECT ladies_only FROM trips WHERE id = $1', [tripId]);
+        if (tripResult.rows.length === 0) {
+            return { allowed: false, error: 'Trip not found' };
+        }
+
+        if (!tripResult.rows[0].ladies_only) {
+            return { allowed: true };
+        }
+
+        const userResult = await pool.query('SELECT gender FROM users WHERE id = $1', [userId]);
+        if (userResult.rows.length === 0) {
+            return { allowed: false, error: 'User not found' };
+        }
+
+        if (userResult.rows[0].gender !== 'female') {
+            return { allowed: false, error: 'Only women can join ladies-only trips' };
+        }
+
+        return { allowed: true };
+    };
 
     io.on('connection', (socket) => {
         const user = (socket as any).user;
         console.log(`🔌 User connected: ${user.username} (${socket.id})`);
 
         // Join trip room
-        socket.on('join_trip_room', (tripId: string) => {
-            const room = `trip_${tripId}`;
-            socket.join(room);
-            console.log(`📍 ${user.username} joined room: ${room}`);
+        socket.on('join_trip_room', async (tripId: string) => {
+            try {
+                const access = await canAccessTrip(tripId, user.id);
+                if (!access.allowed) {
+                    socket.emit('error_message', { error: access.error || 'Not authorized to join this trip' });
+                    return;
+                }
+
+                const room = `trip_${tripId}`;
+                socket.join(room);
+                console.log(`📍 ${user.username} joined room: ${room}`);
+            } catch (err) {
+                console.error('Socket join_trip_room error:', err);
+                socket.emit('error_message', { error: 'Failed to join trip chat' });
+            }
         });
 
         // Leave trip room
@@ -58,6 +90,12 @@ export function setupSocket(httpServer: HttpServer): Server {
                 const { tripId, content } = data;
 
                 if (!tripId || !content || content.trim().length === 0) return;
+
+                const access = await canAccessTrip(tripId, user.id);
+                if (!access.allowed) {
+                    socket.emit('error_message', { error: access.error || 'Not authorized to send messages' });
+                    return;
+                }
 
                 // Save to database
                 const result = await pool.query(
