@@ -36,7 +36,10 @@ router.get('/users', async (req: AuthRequest, res: Response): Promise<void> => {
         const offset = (page - 1) * limit;
 
         const result = await pool.query(
-            'SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2',
+            `SELECT id, username, email, role, gender, 
+                    COALESCE(status, 'active') as status,
+                    created_at 
+             FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
             [limit, offset]
         );
 
@@ -83,12 +86,47 @@ router.patch('/users/:id/role', async (req: AuthRequest, res: Response): Promise
     }
 });
 
+// PATCH /api/admin/users/:id/status — suspend or ban a user
+router.patch('/users/:id/status', async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        if (!['active', 'suspended', 'banned'].includes(status)) {
+            res.status(400).json({ error: 'Invalid status. Must be active, suspended, or banned.' });
+            return;
+        }
+
+        // Prevent admin from modifying themselves
+        if (id === req.user!.id) {
+            res.status(400).json({ error: 'Cannot change your own status' });
+            return;
+        }
+
+        const result = await pool.query(
+            'UPDATE users SET status = $1 WHERE id = $2 RETURNING id, username, status',
+            [status, id]
+        );
+
+        if (result.rows.length === 0) {
+            res.status(404).json({ error: 'User not found' });
+            return;
+        }
+
+        await logAction(req.user!.id, `user_${status}`, 'user', id as string, { newStatus: status, username: result.rows[0].username });
+
+        res.json({ message: `User ${status} successfully`, user: result.rows[0] });
+    } catch (err) {
+        console.error('Admin update user status error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // DELETE /api/admin/users/:id
 router.delete('/users/:id', async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
 
-        // Prevent admin from deleting themselves
         if (id === req.user!.id) {
             res.status(400).json({ error: 'Cannot delete yourself' });
             return;
@@ -118,7 +156,7 @@ router.get('/trips', async (req: AuthRequest, res: Response): Promise<void> => {
         const offset = (page - 1) * limit;
 
         const result = await pool.query(
-            `SELECT t.id, t.title, t.user_id, u.username, t.created_at
+            `SELECT t.id, t.title, t.user_id, t.status, u.username, t.created_at
        FROM trips t
        JOIN users u ON t.user_id = u.id
        ORDER BY t.created_at DESC
@@ -198,13 +236,10 @@ router.get('/reports', async (req: AuthRequest, res: Response): Promise<void> =>
 
         const result = await pool.query(
             `SELECT r.id, r.reporter_id, u1.username as reporter_username, 
-                    r.reported_id, u2.username as reported_username, 
-                    r.trip_id, t.title as trip_title, 
-                    r.reason, r.status, r.created_at
+                    r.target_type, r.target_id,
+                    r.reason, r.description, r.status, r.created_at
              FROM reports r
              LEFT JOIN users u1 ON r.reporter_id = u1.id
-             LEFT JOIN users u2 ON r.reported_id = u2.id
-             LEFT JOIN trips t ON r.trip_id = t.id
              ORDER BY r.created_at DESC
              LIMIT $1 OFFSET $2`,
             [limit, offset]
