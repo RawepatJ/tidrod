@@ -47,7 +47,7 @@ export default function LobbyBox() {
               >
                 <ShieldAlert size={16} />
               </button>
-            </div>>
+            </div>
           </div>
         ))}
       </div>
