@@ -19,12 +19,10 @@ dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
-
+app.set('trust proxy', 1);
 // Middleware
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production'
-        ? ['http://localhost:3000']
-        : ['http://localhost:3000', 'http://localhost:3001'],
+    origin: true,
     credentials: true,
 }));
 
@@ -73,7 +71,7 @@ async function start() {
     try {
         await initDatabase();
         httpServer.listen(PORT, HOST, () => {
-            console.log(`🚀 TidRod Backend running on http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
+            console.log(`🚀 Server running on port ${PORT}`);
             console.log(`📡 WebSocket server ready`);
         });
     } catch (err) {
