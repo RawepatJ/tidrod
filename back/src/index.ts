@@ -67,12 +67,13 @@ setupSocket(httpServer);
 
 // Start
 const PORT = parseInt(process.env.PORT || '5000');
+const HOST = process.env.HOST || '0.0.0.0';
 
 async function start() {
     try {
         await initDatabase();
-        httpServer.listen(PORT, () => {
-            console.log(`🚀 TidRod Backend running on http://localhost:${PORT}`);
+        httpServer.listen(PORT, HOST, () => {
+            console.log(`🚀 TidRod Backend running on http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
             console.log(`📡 WebSocket server ready`);
         });
     } catch (err) {
