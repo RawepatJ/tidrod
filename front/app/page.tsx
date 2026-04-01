@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { MapPin, Users, MessageSquare, Globe, Star, ChevronRight, Shield, Sparkles, Map, ArrowRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useSession } from '../components/SessionProvider';
 
 function AnimatedCounter({ end, label, duration = 2000 }: { end: number; label: string; duration?: number }) {
   const [count, setCount] = useState(0);
@@ -85,6 +86,7 @@ const STEPS = [
 ];
 
 export default function LandingPage() {
+  const { user } = useSession();
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
@@ -94,7 +96,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <main className="flex-1 overflow-y-auto bg-[#EAEFEF]">
+    <main className="flex-1 overflow-y-auto bg-[#EAEFEF] font-main">
 
       {/* ─── HERO ─── */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-20">
@@ -110,10 +112,6 @@ export default function LandingPage() {
             transform: `translateY(${scrollY * 0.1}px)`,
           }}
         />
-
-        {/* Floating blobs */}
-        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-[#FF9B51]/20 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#FF9B51]/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
 
         {/* Content */}
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
@@ -144,20 +142,16 @@ export default function LandingPage() {
               Explore the Map
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </Link>
-            <Link
-              href="/register"
-              className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-2xl font-bold text-lg border border-white/20 hover:bg-white/20 transition-all hover:-translate-y-1"
-            >
-              Join Free
-            </Link>
+            {!user && (
+              <Link
+                href="/register"
+                className="px-8 py-4 bg-white/10 backdrop-blur-sm text-white rounded-2xl font-bold text-lg border border-white/20 hover:bg-white/20 transition-all hover:-translate-y-1"
+              >
+                Join Free
+              </Link>
+            )}
           </div>
 
-          {/* Scroll indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-            <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
-              <div className="w-1.5 h-3 bg-[#FF9B51] rounded-full mt-2 animate-pulse" />
-            </div>
-          </div>
         </div>
       </section>
 

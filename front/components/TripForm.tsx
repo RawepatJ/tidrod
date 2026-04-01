@@ -18,6 +18,7 @@ interface TripData {
   locationName: string;
   privacy: 'open' | 'private';
   ladiesOnly: boolean;
+  maxMembers: number;
 }
 
 interface TripFormProps {
@@ -66,6 +67,7 @@ export default function TripForm({
   // Step 4
   const [privacy, setPrivacy] = useState<'open' | 'private'>('open');
   const [ladiesOnly, setLadiesOnly] = useState(false);
+  const [maxMembers, setMaxMembers] = useState(4);
   // Photos
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviewUrls, setPhotoPreviewUrls] = useState<string[]>([]);
@@ -181,6 +183,7 @@ export default function TripForm({
           longitude: locationLon,
           ladiesOnly,
           privacy,
+          maxMembers,
         },
         photos,
         token
@@ -196,6 +199,7 @@ export default function TripForm({
         locationName,
         privacy,
         ladiesOnly,
+        maxMembers,
       });
 
       // Reset form
@@ -209,6 +213,7 @@ export default function TripForm({
       setLocationLon(null);
       setPrivacy('open');
       setLadiesOnly(false);
+      setMaxMembers(4);
       setPhotos([]);
       setPhotoPreviewUrls([]);
     } catch (err: any) {
@@ -231,7 +236,7 @@ export default function TripForm({
   };
 
   return (
-    <div className="bg-[#EAEFEF]/50 backdrop-blur-lg rounded-3xl shadow-lg border border-[#BFC9D1]/20 overflow-hidden">
+    <div className="bg-white rounded-3xl shadow-lg border border-[#BFC9D1]/20">
       {selectionMode ? (
         <div className="p-6 flex flex-col items-center text-center animate-fade-in">
           <div className="w-16 h-16 bg-[#FF9B51]/10 rounded-full flex items-center justify-center mb-4">
@@ -532,34 +537,44 @@ export default function TripForm({
                   </button>
                 </div>
 
-                <div className="mb-5">
-                  <label className="block text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-2">
-                    Audience
-                  </label>
-                  <button
-                    onClick={() => setLadiesOnly((prev) => !prev)}
-                    disabled={ladiesOnlyBlocked}
-                    className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed ${ladiesOnly
-                      ? 'border-[#FF9B51] bg-[#FF9B51]/10 shadow-md'
-                      : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 hover:border-[#BFC9D1]'
-                      }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Users size={22} className="text-pink-500" />
-                      <div>
-                        <div className="font-bold text-[#25343F]">Ladies Only</div>
-                        <div className="text-xs text-[#25343F]/50">Only women can join</div>
-                      </div>
-                      {ladiesOnly && (
-                        <Check size={18} className="ml-auto text-[#FF9B51]" />
-                      )}
+                <div className="grid grid-cols-2 gap-4 mb-5">
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-bold text-[#25343F]/40 uppercase tracking-widest ml-1">
+                      Lobby Size
+                    </label>
+                    <div className="relative">
+                      <Users size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#25343F]/30" />
+                      <input
+                        type="number"
+                        min={2}
+                        max={20}
+                        value={maxMembers}
+                        onChange={(e) => setMaxMembers(Math.min(20, Math.max(2, parseInt(e.target.value) || 2)))}
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-[#BFC9D1]/20 bg-[#EAEFEF]/30 text-[#25343F] font-bold focus:border-[#FF9B51] outline-none transition-all"
+                      />
                     </div>
-                  </button>
-                  {ladiesOnlyBlocked && (
-                    <p className="mt-2 text-xs text-[#25343F]/50">
-                      Only women can create ladies-only trips.
-                    </p>
-                  )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-bold text-[#25343F]/40 uppercase tracking-widest ml-1">
+                      Ladies Only
+                    </label>
+                    <button
+                      onClick={() => !ladiesOnlyBlocked && setLadiesOnly(!ladiesOnly)}
+                      disabled={ladiesOnlyBlocked}
+                      className={`w-full h-[52px] rounded-xl border-2 transition-all duration-300 flex items-center px-4 gap-3 ${ladiesOnly
+                        ? 'border-[#FF9B51] bg-[#FF9B51]/10'
+                        : 'border-[#BFC9D1]/20 bg-[#EAEFEF]/30'
+                        } ${ladiesOnlyBlocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      <div className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${ladiesOnly ? 'bg-[#FF9B51]' : 'bg-[#BFC9D1]/40'}`}>
+                        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-transform duration-300 ${ladiesOnly ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </div>
+                      <span className={`text-sm font-bold ${ladiesOnly ? 'text-[#FF9B51]' : 'text-[#25343F]/40'}`}>
+                        {ladiesOnly ? 'Yes' : 'No'}
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Photo Upload */}

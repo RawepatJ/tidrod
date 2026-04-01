@@ -19,7 +19,7 @@ export default function Header() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <header className="fixed left-4 right-4 flex h-[56px] rounded-full py-4 my-4 backdrop-blur-md bg-white/80 shadow-md shrink-0 z-50 border border-[#BFC9D1]/30">
+    <header className="fixed left-4 right-4 flex h-[56px] rounded-full py-4 my-4 backdrop-blur-md bg-white/80 shadow-md shrink-0 z-50 border border-[#BFC9D1]/30 font-main">
       <div className="flex justify-between items-center w-full">
         {/* Logo */}
         <div>
@@ -44,7 +44,7 @@ export default function Header() {
             <Map size={16} />
             Map
           </Link>
-          {user?.role === 'admin' && (
+          {user?.role?.toLowerCase() === 'admin' && (
             <Link
               href="/admin"
               className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${isActive('/admin') ? 'text-[#FF9B51]' : 'text-[#25343F]/70 hover:text-[#FF9B51]'}`}
@@ -66,10 +66,20 @@ export default function Header() {
                 href="/profile"
                 className={`flex items-center gap-2 text-sm font-medium transition-colors ${isActive('/profile') ? 'text-[#FF9B51]' : 'text-[#25343F]/60 hover:text-[#FF9B51]'}`}
               >
-                <div className="w-7 h-7 rounded-full bg-[#FF9B51] text-white flex items-center justify-center text-xs font-bold">
-                  {user.username.charAt(0).toUpperCase()}
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-[#FF9B51] border-2 border-white shadow-sm flex items-center justify-center shrink-0">
+                  {user.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt={user.username}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-white text-xs font-bold uppercase">
+                      {user.username.charAt(0)}
+                    </div>
+                  )}
                 </div>
-                <span className="hidden sm:inline">{user.username}</span>
+                <span className="hidden sm:inline font-semibold">{user.username}</span>
               </Link>
               <button
                 onClick={handleSignOut}

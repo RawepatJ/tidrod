@@ -63,7 +63,7 @@ export default function SearchTrip({ onTripSelect }: SearchTripProps) {
 
   return (
     <div ref={containerRef} className="relative">
-      <div className="bg-[#EAEFEF]/50 backdrop-blur-lg rounded-3xl shadow-lg border border-[#BFC9D1]/20 overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-lg border border-[#BFC9D1]/20 overflow-hidden">
         <div className="px-4 py-3 flex items-center gap-3">
           <Search size={18} className="text-[#BFC9D1] flex-shrink-0" />
           <input

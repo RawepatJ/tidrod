@@ -4,13 +4,26 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { getTrip, getToken, getUser, deleteTrip, getTripRating, getTripRatings, joinTrip, endTrip, getJoinRequests, respondJoinRequest, getTripMembers } from '@/lib/api';
+import { 
+  getTrip, 
+  getToken, 
+  getUser, 
+  deleteTrip, 
+  getTripRating, 
+  getTripRatings, 
+  joinTrip, 
+  getJoinRequests, 
+  respondJoinRequest, 
+  getTripMembers, 
+  updateTripStatus,
+  leaveTrip
+} from '@/lib/api';
 import Chat from '@/components/Chat';
 import { SkeletonTripDetail } from '@/components/Skeleton';
 import { useToast } from '@/components/Toast';
 import {
   ShieldAlert, ArrowLeft, User, Calendar, Users, Trash2, MapPin, Star,
-  UserPlus, CheckCircle, XCircle, Flag, Clock, Lock, Loader2
+  UserPlus, CheckCircle, XCircle, Flag, Clock, Lock, Loader2, LogOut
 } from 'lucide-react';
 import ReportModal from '@/components/ReportModal';
 import RatingStars from '@/components/RatingStars';
@@ -50,7 +63,6 @@ export default function TripDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
-  const [hasJoined, setHasJoined] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [reportTripId, setReportTripId] = useState<string | null>(null);
   const [tripRating, setTripRating] = useState<{ average_rating: number; total_ratings: number } | null>(null);
@@ -165,16 +177,53 @@ export default function TripDetailPage() {
 
   const handleEndTrip = async () => {
     if (!trip) return;
-    if (!window.confirm('Are you sure you want to end this trip? Members will be able to rate it.')) return;
+    if (!window.confirm('Are you sure you want to mark this trip as completed?')) return;
     setIsEnding(true);
     try {
-      await endTrip(trip.id);
-      setTrip(prev => prev ? { ...prev, status: 'ended', ended_at: new Date().toISOString() } : prev);
-      addToast('Trip ended successfully!', 'success');
+      await updateTripStatus(trip.id, 'completed');
+      setTrip(prev => prev ? { ...prev, status: 'completed', ended_at: new Date().toISOString() } : prev);
+      addToast('Trip marked as completed!', 'success');
     } catch (err: any) {
-      addToast(err.message || 'Failed to end trip', 'error');
+      addToast(err.message || 'Failed to complete trip', 'error');
     } finally {
       setIsEnding(false);
+    }
+  };
+
+  const handleStartTrip = async () => {
+    if (!trip) return;
+    if (!window.confirm('Start this trip now?')) return;
+    setIsEnding(true);
+    try {
+      await updateTripStatus(trip.id, 'in_progress');
+      setTrip(prev => prev ? { ...prev, status: 'in_progress' } : prev);
+      addToast('Trip started!', 'success');
+    } catch (err: any) {
+      addToast(err.message || 'Failed to start trip', 'error');
+    } finally {
+      setIsEnding(false);
+    }
+  };
+
+  const handleLeaveTrip = async () => {
+    if (!trip) return;
+    const msg = isHost 
+      ? 'Are you sure you want to leave? As the host, this will CANCEL the trip for everyone.' 
+      : 'Are you sure you want to leave this trip?';
+    if (!window.confirm(msg)) return;
+    
+    try {
+      await leaveTrip(trip.id);
+      addToast('Left trip successfully', 'success');
+      if (isHost) {
+        router.push('/home');
+      } else {
+        setIsMember(false);
+        setJoinStatus(null);
+        loadMembers(trip.id);
+      }
+    } catch (err: any) {
+      addToast(err.message || 'Failed to leave trip', 'error');
     }
   };
 
@@ -228,7 +277,7 @@ export default function TripDetailPage() {
 
   const photos = trip.photos?.filter(Boolean) || [];
   const isHost = user?.id === trip.author_id;
-  const canRate = user && !isHost && trip.status === 'ended' && isMember;
+  const canRate = user && !isHost && trip.status === 'completed' && isMember;
 
   return (
     <main className="flex-1 overflow-y-auto bg-[#EAEFEF] pt-22">
@@ -250,11 +299,20 @@ export default function TripDetailPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <h1 className="text-2xl font-bold text-[#25343F]">{trip.title}</h1>
-                    {trip.status === 'ended' && (
-                      <span className="px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs font-bold rounded-full">Ended</span>
+                    {trip.status === 'completed' && (
+                      <span className="px-2.5 py-0.5 bg-green-100 text-green-600 text-xs font-bold rounded-full">Completed</span>
+                    )}
+                    {trip.status === 'cancelled' && (
+                      <span className="px-2.5 py-0.5 bg-red-100 text-red-600 text-xs font-bold rounded-full">Cancelled</span>
+                    )}
+                    {trip.status === 'in_progress' && (
+                      <span className="px-2.5 py-0.5 bg-blue-100 text-blue-600 text-xs font-bold rounded-full animate-pulse">In Progress</span>
+                    )}
+                    {trip.status === 'full' && (
+                      <span className="px-2.5 py-0.5 bg-amber-100 text-amber-600 text-xs font-bold rounded-full">Full</span>
                     )}
                     {trip.privacy === 'private' && (
-                      <span className="px-2.5 py-0.5 bg-amber-50 text-amber-600 text-xs font-bold rounded-full flex items-center gap-1">
+                      <span className="px-2.5 py-0.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-full flex items-center gap-1">
                         <Lock size={10} /> Private
                       </span>
                     )}
@@ -291,23 +349,32 @@ export default function TripDetailPage() {
                     <ShieldAlert size={18} />
                   </button>
 
-                  {isHost && trip.status === 'active' && (
+                  {isHost && trip.status === 'open' && (
+                    <button
+                      onClick={handleStartTrip}
+                      disabled={isEnding}
+                      className="flex items-center gap-2 px-4 py-2 bg-[#FF9B51] text-white rounded-lg hover:bg-[#e8893f] transition-colors text-sm font-medium shadow-sm disabled:opacity-50"
+                    >
+                      <CheckCircle size={14} /> {isEnding ? 'Starting...' : 'Start Trip'}
+                    </button>
+                  )}
+
+                  {isHost && trip.status === 'in_progress' && (
                     <button
                       onClick={handleEndTrip}
                       disabled={isEnding}
-                      className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-colors text-sm font-medium border border-amber-200 disabled:opacity-50"
+                      className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium shadow-sm disabled:opacity-50"
                     >
                       <Flag size={14} /> {isEnding ? 'Ending...' : 'End Trip'}
                     </button>
                   )}
 
-                  {isHost && (
+                  {isHost && (trip.status === 'open' || trip.status === 'full' || trip.status === 'in_progress') && (
                     <button
-                      onClick={handleDeleteTrip}
-                      disabled={isDeleting}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium border border-red-100 disabled:opacity-50"
+                      onClick={handleLeaveTrip}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium border border-red-100"
                     >
-                      <Trash2 size={14} /> {isDeleting ? 'Deleting...' : 'Delete'}
+                      <LogOut size={14} /> Cancel Trip
                     </button>
                   )}
                 </div>
@@ -449,15 +516,18 @@ export default function TripDetailPage() {
                 </div>
               )}
 
-              {isMember && !isHost && (
-                <div className="w-full py-3 px-4 bg-green-50 text-green-700 rounded-xl font-semibold text-center flex items-center justify-center gap-2 border border-green-200">
-                  <CheckCircle size={16} /> You are a member
-                </div>
+              {isMember && !isHost && (trip.status === 'open' || trip.status === 'full' || trip.status === 'in_progress') && (
+                <button
+                  onClick={handleLeaveTrip}
+                  className="w-full py-3 px-4 bg-white text-red-500 border border-red-200 hover:bg-red-50 rounded-xl font-semibold transition-all shadow-sm flex items-center justify-center gap-2 mb-4"
+                >
+                  <LogOut size={16} /> Leave Trip
+                </button>
               )}
 
               {/* Chat */}
-              {hasJoined ? (
-                <Chat tripId={trip?.id || ''} onLeave={() => setHasJoined(false)} />
+              {isMember || isHost ? (
+                <Chat tripId={trip?.id || ''} onLeave={isHost ? undefined : handleLeaveTrip} />
               ) : (
                 <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-[#BFC9D1]/20">
                   <div className="w-16 h-16 bg-[#FF9B51]/10 text-[#FF9B51] rounded-full flex items-center justify-center mx-auto mb-4">
@@ -465,24 +535,26 @@ export default function TripDetailPage() {
                   </div>
                   <h3 className="font-bold text-[#25343F] text-lg mb-2">Trip Discussion</h3>
                   <p className="text-sm text-[#25343F]/60 mb-6 leading-relaxed">
-                    Join the chat to talk with the author and other travelers about this trip.
+                    Join this trip to participate in the real-time discussion with other travelers.
                   </p>
-                  <button
-                    onClick={() => {
-                      if (!user) {
-                        addToast('Please login to join the chat', 'error');
-                        return;
-                      }
-                      if (trip.ladiesOnly && user.gender !== 'female') {
-                        addToast('Only women can join ladies-only trips', 'error');
-                        return;
-                      }
-                      setHasJoined(true);
-                    }}
-                    className="w-full py-3 px-4 bg-[#FF9B51] hover:bg-[#e8893f] text-white rounded-xl font-semibold transition-all shadow-md hover:shadow-lg"
-                  >
-                    Join Trip Chat
-                  </button>
+                  
+                  {user ? (
+                     <button
+                        onClick={handleJoinTrip}
+                        disabled={isJoining}
+                        className="w-full py-3 px-4 bg-[#FF9B51] hover:bg-[#e8893f] text-white rounded-xl font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                      >
+                        {isJoining ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}
+                        {trip.privacy === 'private' ? 'Request to Join' : 'Join Trip'}
+                      </button>
+                  ) : (
+                    <button
+                      onClick={() => addToast('Please login to join', 'error')}
+                      className="w-full py-3 px-4 bg-[#FF9B51] hover:bg-[#e8893f] text-white rounded-xl font-semibold transition-all"
+                    >
+                      Join Trip
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -518,13 +590,13 @@ export default function TripDetailPage() {
                     </button>
                   )}
 
-                  {user && !isHost && trip.status !== 'ended' && (
+                  {user && !isHost && trip.status !== 'completed' && (
                     <p className="text-xs text-[#25343F]/50 text-center py-2">
                       Rating available after the trip ends
                     </p>
                   )}
 
-                  {user && !isHost && trip.status === 'ended' && !isMember && (
+                  {user && !isHost && trip.status === 'completed' && !isMember && (
                     <p className="text-xs text-[#25343F]/50 text-center py-2">
                       Only trip members can rate
                     </p>

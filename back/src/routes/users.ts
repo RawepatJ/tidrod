@@ -11,9 +11,13 @@ router.get('/me', authMiddleware, async (req: AuthRequest, res: Response): Promi
 
         const userResult = await pool.query(
             `SELECT id, username, email,
+                    role,
                     gender,
                     COALESCE(bio, '') as bio,
                     avatar_url,
+                    status,
+                    suspended_until,
+                    email_verified,
                     created_at 
              FROM users WHERE id = $1`,
             [userId]
@@ -96,7 +100,7 @@ router.put('/me', authMiddleware, async (req: AuthRequest, res: Response): Promi
             `UPDATE users 
              SET username = $1, bio = $2, avatar_url = $3 
              WHERE id = $4 
-             RETURNING id, username, email, bio, avatar_url, created_at`,
+             RETURNING id, username, email, role, status, gender, email_verified, bio, avatar_url, created_at`,
             [username.trim(), bio || '', avatar_url || null, userId]
         );
 

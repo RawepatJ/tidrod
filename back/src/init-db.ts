@@ -14,6 +14,10 @@ export async function initDatabase(): Promise<void> {
         status VARCHAR(20) DEFAULT 'active',
         bio TEXT DEFAULT '',
         avatar_url TEXT,
+        suspended_until TIMESTAMPTZ,
+        email_verified BOOLEAN DEFAULT FALSE,
+        verification_token TEXT,
+        reset_token TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
@@ -22,6 +26,10 @@ export async function initDatabase(): Promise<void> {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
       ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT '';
       ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS suspended_until TIMESTAMPTZ;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token TEXT;
 
       CREATE TABLE IF NOT EXISTS trips (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -32,14 +40,16 @@ export async function initDatabase(): Promise<void> {
         longitude DOUBLE PRECISION NOT NULL,
         ladies_only BOOLEAN NOT NULL DEFAULT FALSE,
         privacy VARCHAR(20) DEFAULT 'open',
-        status VARCHAR(20) DEFAULT 'active',
+        status VARCHAR(20) DEFAULT 'open',
+        max_members INT DEFAULT 4,
         ended_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
       ALTER TABLE trips ADD COLUMN IF NOT EXISTS ladies_only BOOLEAN NOT NULL DEFAULT FALSE;
       ALTER TABLE trips ADD COLUMN IF NOT EXISTS privacy VARCHAR(20) DEFAULT 'open';
-      ALTER TABLE trips ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
+      ALTER TABLE trips ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'open';
+      ALTER TABLE trips ADD COLUMN IF NOT EXISTS max_members INT DEFAULT 4;
       ALTER TABLE trips ADD COLUMN IF NOT EXISTS ended_at TIMESTAMPTZ;
 
       CREATE TABLE IF NOT EXISTS trip_photos (

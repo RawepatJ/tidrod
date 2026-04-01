@@ -69,7 +69,7 @@ export async function searchTrips(query: string) {
 }
 
 export async function createTrip(
-    data: { title: string; description: string; latitude: number; longitude: number; ladiesOnly?: boolean; privacy?: string },
+    data: { title: string; description: string; latitude: number; longitude: number; ladiesOnly?: boolean; privacy?: string; maxMembers?: number },
     photos: File[],
     token: string
 ) {
@@ -80,6 +80,9 @@ export async function createTrip(
     formData.append('longitude', String(data.longitude));
     formData.append('ladiesOnly', String(!!data.ladiesOnly));
     formData.append('privacy', data.privacy || 'open');
+    if (data.maxMembers) {
+        formData.append('maxMembers', String(data.maxMembers));
+    }
     photos.forEach((photo) => formData.append('photos', photo));
 
     return apiFetch<any>('/api/trips', {
@@ -99,6 +102,19 @@ export async function deleteTrip(id: string, token: string) {
 export async function endTrip(tripId: string) {
     return fetchAuth<{ message: string }>(`/api/trips/${tripId}/end`, {
         method: 'POST',
+    });
+}
+
+export async function leaveTrip(tripId: string) {
+    return fetchAuth<{ message: string }>(`/api/trips/${tripId}/leave`, {
+        method: 'POST',
+    });
+}
+
+export async function updateTripStatus(tripId: string, status: string) {
+    return fetchAuth<{ message: string }>(`/api/trips/${tripId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
     });
 }
 
@@ -145,6 +161,10 @@ export async function submitReport(data: { targetType: string; targetId: string;
 }
 
 // --- User Profile ---
+export async function fetchMe() {
+    return fetchAuth<{ user: any; trips: any[] }>('/api/users/me');
+}
+
 export async function updateUserProfile(data: { username: string; bio: string; avatar_url?: string }, token: string) {
     return apiFetch<{ user: any; message: string }>('/api/users/me', {
         method: 'PUT',
@@ -217,12 +237,19 @@ export function removeToken(): void {
     localStorage.removeItem('tidrod_token');
 }
 
-export function getUser(): { id: string; email: string; username: string; role: string; gender?: string } | null {
+export function getUser(): { id: string; email: string; username: string; role: string; gender?: string; email_verified: boolean } | null {
     const token = getToken();
     if (!token) return null;
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        return { id: payload.id, email: payload.email, username: payload.username, role: payload.role, gender: payload.gender };
+        return { 
+            id: payload.id, 
+            email: payload.email, 
+            username: payload.username, 
+            role: payload.role, 
+            gender: payload.gender,
+            email_verified: !!payload.email_verified
+        };
     } catch {
         return null;
     }

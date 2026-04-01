@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import multer from 'multer';
 import pool from '../db';
-import { authMiddleware, AuthRequest } from '../middleware/auth';
+import { authMiddleware, AuthRequest, verifiedMiddleware } from '../middleware/auth';
 import { uploadToSupabase } from '../storage';
 import { createNotification } from './notifications';
 
@@ -72,6 +72,26 @@ router.get('/search', async (req: AuthRequest, res: Response): Promise<void> => 
     }
 });
 
+// GET /api/trips/me — get user's trips
+router.get('/me', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const userId = req.user!.id;
+        const result = await pool.query(
+            `SELECT t.*, u.username as host_name 
+             FROM trips t
+             JOIN users u ON t.user_id = u.id
+             WHERE (t.user_id = $1 OR t.id IN (SELECT trip_id FROM trip_members WHERE user_id = $1))
+               AND t.status NOT IN ('completed', 'cancelled')
+             ORDER BY t.created_at DESC`,
+            [userId]
+        );
+        res.json({ trips: result.rows });
+    } catch (err) {
+        console.error('Get my trips error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // GET /api/trips/:id — single trip with photos
 router.get('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -103,12 +123,19 @@ router.get('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
 });
 
 // POST /api/trips — create trip (auth required)
-router.post('/', authMiddleware, upload.array('photos', 10), async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/', authMiddleware, verifiedMiddleware, upload.array('photos', 10), async (req: AuthRequest, res: Response): Promise<void> => {
     const client = await pool.connect();
     try {
-        const { title, description, latitude, longitude, ladiesOnly, privacy } = req.body;
+        const { title, description, latitude, longitude, ladiesOnly, privacy, maxMembers } = req.body;
+
+        if (req.user!.status === 'suspended') {
+            res.status(403).json({ error: 'Your account is suspended. You cannot create trips at this time.' });
+            return;
+        }
+
         const isLadiesOnly = ladiesOnly === 'true' || ladiesOnly === true;
         const tripPrivacy = privacy === 'private' ? 'private' : 'open';
+        const maxM = parseInt(maxMembers) || 4;
 
         if (!title || latitude == null || longitude == null) {
             res.status(400).json({ error: 'Title, latitude, and longitude are required' });
@@ -130,11 +157,11 @@ router.post('/', authMiddleware, upload.array('photos', 10), async (req: AuthReq
         await client.query('BEGIN');
 
         const tripResult = await client.query(
-            `INSERT INTO trips (user_id, title, description, latitude, longitude, ladies_only, privacy)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)
+            `INSERT INTO trips (user_id, title, description, latitude, longitude, ladies_only, privacy, max_members, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'open')
              RETURNING id, user_id, title, description, latitude, longitude, created_at,
-                       ladies_only as "ladiesOnly", privacy, status`,
-            [req.user!.id, title, description || '', parseFloat(latitude), parseFloat(longitude), isLadiesOnly, tripPrivacy]
+                       ladies_only as "ladiesOnly", privacy, status, max_members as "maxMembers"`,
+            [req.user!.id, title, description || '', parseFloat(latitude), parseFloat(longitude), isLadiesOnly, tripPrivacy, maxM]
         );
 
         const trip = tripResult.rows[0];
@@ -202,61 +229,104 @@ router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response): P
     }
 });
 
-// POST /api/trips/:id/end — end trip (host only)
+// PATCH /api/trips/:id/status — update trip status (host only)
+router.patch('/:id/status', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        const userId = req.user!.id;
+
+        const allowedStates = ['open', 'in_progress', 'completed', 'cancelled', 'full'];
+        if (!allowedStates.includes(status)) {
+            res.status(400).json({ error: 'Invalid status' });
+            return;
+        }
+
+        const tripCheck = await pool.query('SELECT user_id, title, status FROM trips WHERE id = $1', [id]);
+        if (tripCheck.rows.length === 0) {
+            res.status(404).json({ error: 'Trip not found' });
+            return;
+        }
+
+        if (tripCheck.rows[0].user_id !== userId) {
+            res.status(403).json({ error: 'Only the trip host can update the status' });
+            return;
+        }
+
+        const endedAt = (status === 'completed' || status === 'cancelled') ? 'NOW()' : 'NULL';
+        
+        await pool.query(
+            `UPDATE trips SET status = $1, ended_at = ${endedAt} WHERE id = $2`,
+            [status, id]
+        );
+
+        // Notify members about status updates (except 'open' which might be noisy)
+        if (status !== 'open') {
+            const members = await pool.query(
+                'SELECT user_id FROM trip_members WHERE trip_id = $1 AND user_id != $2',
+                [id, userId]
+            );
+
+            for (const member of members.rows) {
+                await createNotification(
+                    member.user_id,
+                    'trip_status_updated',
+                    'Trip Status Updated',
+                    `The trip "${tripCheck.rows[0].title}" is now ${status.replace('_', ' ')}.`,
+                    id as string,
+                    userId
+                );
+            }
+        }
+
+        res.json({ message: `Trip marked as ${status}`, status });
+    } catch (err) {
+        console.error('Update trip status error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// POST /api/trips/:id/end — compatibility endpoint
 router.post('/:id/end', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+    // Redirect logic
     try {
         const { id } = req.params;
         const userId = req.user!.id;
 
-        const tripCheck = await pool.query('SELECT user_id, status FROM trips WHERE id = $1', [id]);
+        const tripCheck = await pool.query('SELECT user_id, title FROM trips WHERE id = $1', [id]);
         if (tripCheck.rows.length === 0) {
             res.status(404).json({ error: 'Trip not found' });
             return;
         }
         if (tripCheck.rows[0].user_id !== userId) {
-            res.status(403).json({ error: 'Only the trip host can end the trip' });
-            return;
-        }
-        if (tripCheck.rows[0].status === 'ended') {
-            res.status(400).json({ error: 'Trip is already ended' });
+            res.status(403).json({ error: 'Only host can end' });
             return;
         }
 
-        await pool.query(
-            'UPDATE trips SET status = $1, ended_at = NOW() WHERE id = $2',
-            ['ended', id]
-        );
-
-        // Notify all members
-        const members = await pool.query(
-            'SELECT user_id FROM trip_members WHERE trip_id = $1 AND user_id != $2',
-            [id, userId]
-        );
-        for (const member of members.rows) {
-            await createNotification(
-                member.user_id,
-                'trip_ended',
-                'Trip Ended',
-                `The trip "${tripCheck.rows[0].title || 'a trip'}" has been ended by the host. You can now rate it!`,
-                id as string,
-                userId
-            );
-        }
-
-        res.json({ message: 'Trip ended successfully' });
+        await pool.query('UPDATE trips SET status = $1, ended_at = NOW() WHERE id = $2', ['completed', id]);
+        res.json({ message: 'Trip completed', status: 'completed' });
     } catch (err) {
-        console.error('End trip error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
 
 // POST /api/trips/:id/join — request to join trip
-router.post('/:id/join', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/:id/join', authMiddleware, verifiedMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
         const userId = req.user!.id;
 
-        const tripCheck = await pool.query('SELECT user_id, privacy, ladies_only, title, status FROM trips WHERE id = $1', [id]);
+        if (req.user!.status === 'suspended') {
+            res.status(403).json({ error: 'Your account is suspended. You cannot join trips at this time.' });
+            return;
+        }
+
+        const tripCheck = await pool.query(
+            `SELECT t.user_id, t.privacy, t.ladies_only, t.title, t.status, t.max_members,
+                    (SELECT COUNT(*) FROM trip_members WHERE trip_id = t.id) as current_members
+             FROM trips t WHERE t.id = $1`, 
+            [id]
+        );
         if (tripCheck.rows.length === 0) {
             res.status(404).json({ error: 'Trip not found' });
             return;
@@ -264,8 +334,13 @@ router.post('/:id/join', authMiddleware, async (req: AuthRequest, res: Response)
 
         const trip = tripCheck.rows[0];
 
-        if (trip.status === 'ended') {
-            res.status(400).json({ error: 'This trip has ended' });
+        if (trip.status === 'completed' || trip.status === 'cancelled') {
+            res.status(400).json({ error: 'This trip has ended or been cancelled' });
+            return;
+        }
+
+        if (parseInt(trip.current_members) >= trip.max_members) {
+            res.status(400).json({ error: 'This trip is already full' });
             return;
         }
 
@@ -322,7 +397,24 @@ router.post('/:id/join', authMiddleware, async (req: AuthRequest, res: Response)
                 'INSERT INTO trip_members (trip_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
                 [id, userId]
             );
+
+            // Update status to full if it reaches max
+            const newMemberCount = parseInt(trip.current_members) + 1;
+            if (newMemberCount >= trip.max_members) {
+                await pool.query('UPDATE trips SET status = $1 WHERE id = $2', ['full', id]);
+            }
+
             res.json({ message: 'Joined trip successfully', status: 'joined' });
+
+            // Notify the trip host about open join
+            await createNotification(
+                trip.user_id,
+                'trip_join',
+                'New Trip Member',
+                `${req.user!.username} joined your trip "${trip.title}"`,
+                id as string,
+                userId
+            );
         }
     } catch (err) {
         console.error('Join trip error:', err);
@@ -365,7 +457,7 @@ router.get('/:id/join-requests', authMiddleware, async (req: AuthRequest, res: R
 });
 
 // PATCH /api/trips/:id/join-requests/:requestId — approve/deny join request
-router.patch('/:id/join-requests/:requestId', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+router.patch('/:id/join-requests/:requestId', authMiddleware, verifiedMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { id, requestId } = req.params;
         const { status } = req.body;
@@ -384,6 +476,11 @@ router.patch('/:id/join-requests/:requestId', authMiddleware, async (req: AuthRe
         }
         if (tripCheck.rows[0].user_id !== userId) {
             res.status(403).json({ error: 'Only the trip host can manage join requests' });
+            return;
+        }
+
+        if (req.user!.status === 'suspended') {
+            res.status(403).json({ error: 'Your account is suspended. You cannot manage join requests at this time.' });
             return;
         }
 
@@ -431,6 +528,59 @@ router.patch('/:id/join-requests/:requestId', authMiddleware, async (req: AuthRe
     }
 });
 
+// POST /api/trips/:id/leave — leave trip
+router.post('/:id/leave', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const userId = req.user!.id;
+
+        const tripCheck = await pool.query('SELECT user_id, status, title FROM trips WHERE id = $1', [id]);
+        if (tripCheck.rows.length === 0) {
+            res.status(404).json({ error: 'Trip not found' });
+            return;
+        }
+
+        const trip = tripCheck.rows[0];
+
+        // If host leaves, cancel trip
+        if (trip.user_id === userId) {
+            await pool.query('UPDATE trips SET status = $1, ended_at = NOW() WHERE id = $2', ['cancelled', id]);
+            
+            // Notify members
+            const members = await pool.query('SELECT user_id FROM trip_members WHERE trip_id = $1 AND user_id != $2', [id as string, userId]);
+            for (const member of members.rows) {
+                await createNotification(
+                    member.user_id,
+                    'trip_cancelled',
+                    'Trip Cancelled',
+                    `The trip "${trip.title}" has been cancelled because the host left.`,
+                    id as string,
+                    userId
+                );
+            }
+        }
+
+        const result = await pool.query('DELETE FROM trip_members WHERE trip_id = $1 AND user_id = $2 RETURNING *', [id, userId]);
+        if (result.rows.length === 0) {
+            res.status(400).json({ error: 'You are not a member of this trip' });
+            return;
+        }
+
+        // Also delete any join requests so the user can rejoin later if it was a private trip
+        await pool.query('DELETE FROM trip_join_requests WHERE trip_id = $1 AND user_id = $2', [id, userId]);
+
+        // If trip was full, mark as open again
+        if (trip.status === 'full') {
+            await pool.query('UPDATE trips SET status = $1 WHERE id = $2', ['open', id]);
+        }
+
+        res.json({ message: 'Left trip successfully' });
+    } catch (err) {
+        console.error('Leave trip error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // GET /api/trips/:id/members — list trip members
 router.get('/:id/members', async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -449,6 +599,42 @@ router.get('/:id/members', async (req: AuthRequest, res: Response): Promise<void
         res.json({ members: result.rows });
     } catch (err) {
         console.error('Get trip members error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// PATCH /api/trips/:id/status — update trip status (host only)
+router.patch('/:id/status', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        const userId = req.user!.id;
+
+        const allowedStatuses = ['open', 'full', 'in_progress', 'completed', 'cancelled'];
+        if (!allowedStatuses.includes(status)) {
+            res.status(400).json({ error: 'Invalid status' });
+            return;
+        }
+
+        const tripCheck = await pool.query('SELECT user_id FROM trips WHERE id = $1', [id]);
+        if (tripCheck.rows.length === 0) {
+            res.status(404).json({ error: 'Trip not found' });
+            return;
+        }
+
+        if (tripCheck.rows[0].user_id !== userId) {
+            res.status(403).json({ error: 'Only the host can update trip status' });
+            return;
+        }
+
+        const query = status === 'completed' || status === 'cancelled' 
+            ? 'UPDATE trips SET status = $1, ended_at = NOW() WHERE id = $2 RETURNING status'
+            : 'UPDATE trips SET status = $1 WHERE id = $2 RETURNING status';
+
+        const result = await pool.query(query, [status, id]);
+        res.json({ message: `Trip status updated to ${status}`, status: result.rows[0].status });
+    } catch (err) {
+        console.error('Update trip status error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -504,9 +690,9 @@ router.post('/:id/rating', authMiddleware, async (req: AuthRequest, res: Respons
             return;
         }
 
-        // Trip must be ended to rate
-        if (tripCheck.rows[0].status !== 'ended') {
-            res.status(400).json({ error: 'You can only rate a trip after it has ended' });
+        // Trip must be completed to rate
+        if (tripCheck.rows[0].status !== 'completed') {
+            res.status(400).json({ error: 'You can only rate a trip after it has completed' });
             return;
         }
 

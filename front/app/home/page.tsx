@@ -13,7 +13,7 @@ import ReportModal from '@/components/ReportModal';
 const MapComponent = dynamic(() => import('@/components/Map'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full bg-[#1a1a2e] animate-pulse flex items-center justify-center">
+    <div className="w-full h-full bg-white animate-pulse flex items-center justify-center">
       <div className="text-center">
         <div className="w-10 h-10 border-4 border-[#FF9B51] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         <p className="text-[#BFC9D1] text-sm">Loading Map...</p>
@@ -134,7 +134,7 @@ export default function HomePage() {
   return (
     <main className="flex flex-col lg:flex-row flex-1 w-full bg-[#EAEFEF] p-4 pt-0 gap-4 overflow-hidden pt-22">
       {/* Sidebar */}
-      <section className="fixed w-full lg:w-auto flex-none z-10">
+      <section className="w-full lg:w-auto flex-none z-10">
         <Sidebar
           onLocationSelectRequest={handleLocationSelectRequest}
           onLocationSearch={handleLocationSearch}
@@ -219,9 +219,9 @@ export default function HomePage() {
                         <Users size={12} /> Ladies Only
                       </span>
                     )}
-                    {tripDetail.status === 'ended' && (
+                    {tripDetail.status === 'completed' && (
                       <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-semibold text-xs">
-                        Ended
+                        Completed
                       </span>
                     )}
                   </div>

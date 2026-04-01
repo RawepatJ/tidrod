@@ -90,7 +90,7 @@ router.patch('/users/:id/role', async (req: AuthRequest, res: Response): Promise
 router.patch('/users/:id/status', async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        const { status, durationHours } = req.body;
 
         if (!['active', 'suspended', 'banned'].includes(status)) {
             res.status(400).json({ error: 'Invalid status. Must be active, suspended, or banned.' });
@@ -103,19 +103,66 @@ router.patch('/users/:id/status', async (req: AuthRequest, res: Response): Promi
             return;
         }
 
-        const result = await pool.query(
-            'UPDATE users SET status = $1 WHERE id = $2 RETURNING id, username, status',
-            [status, id]
-        );
-
-        if (result.rows.length === 0) {
-            res.status(404).json({ error: 'User not found' });
-            return;
+        let suspendedUntil: Date | null = null;
+        if (status === 'suspended' && durationHours) {
+            suspendedUntil = new Date();
+            suspendedUntil.setHours(suspendedUntil.getHours() + parseInt(durationHours));
         }
 
-        await logAction(req.user!.id, `user_${status}`, 'user', id as string, { newStatus: status, username: result.rows[0].username });
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
 
-        res.json({ message: `User ${status} successfully`, user: result.rows[0] });
+            const result = await client.query(
+                'UPDATE users SET status = $1, suspended_until = $2 WHERE id = $3 RETURNING id, username, status, suspended_until',
+                [status, suspendedUntil, id]
+            );
+
+            if (result.rows.length === 0) {
+                await client.query('ROLLBACK');
+                res.status(404).json({ error: 'User not found' });
+                return;
+            }
+
+            const user = result.rows[0];
+
+            // If banned or suspended, force leave all trips
+            if (status === 'banned' || status === 'suspended') {
+                // 1. Cancel trips where they are host
+                const hostTrips = await client.query(
+                    "UPDATE trips SET status = 'cancelled', ended_at = NOW() WHERE user_id = $1 AND status NOT IN ('completed', 'cancelled') RETURNING id, title",
+                    [id]
+                );
+
+                // 2. Remove from all trip_members
+                await client.query('DELETE FROM trip_members WHERE user_id = $1', [id]);
+
+                // Notify members of cancelled trips
+                for (const trip of hostTrips.rows) {
+                    const members = await client.query('SELECT user_id FROM trip_members WHERE trip_id = $1', [trip.id]);
+                    for (const member of members.rows) {
+                        await client.query(
+                             "INSERT INTO notifications (user_id, type, title, message, target_id, actor_id) VALUES ($1, 'trip_cancelled', 'Trip Cancelled', $2, $3, $4)",
+                             [member.user_id, `The trip "${trip.title}" has been cancelled because the host was ${status}.`, trip.id, req.user!.id]
+                        );
+                    }
+                }
+            }
+
+            await logAction(req.user!.id, `user_${status}`, 'user', id as string, { 
+                newStatus: status, 
+                username: user.username,
+                suspendedUntil: user.suspended_until 
+            });
+
+            await client.query('COMMIT');
+            res.json({ message: `User ${status} successfully`, user });
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
+        }
     } catch (err) {
         console.error('Admin update user status error:', err);
         res.status(500).json({ error: 'Internal server error' });
@@ -254,6 +301,46 @@ router.get('/reports', async (req: AuthRequest, res: Response): Promise<void> =>
         });
     } catch (err) {
         console.error('Admin get reports error:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// GET /api/admin/reports/:id
+router.get('/reports/:id', async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+
+        const result = await pool.query(
+            `SELECT r.*, u1.username as reporter_username
+             FROM reports r
+             LEFT JOIN users u1 ON r.reporter_id = u1.id
+             WHERE r.id = $1`,
+            [id]
+        );
+
+        if (result.rows.length === 0) {
+            res.status(404).json({ error: 'Report not found' });
+            return;
+        }
+
+        const report = result.rows[0];
+        let targetContent = null;
+
+        // Fetch target content based on type
+        if (report.target_type === 'USER') {
+            const userRes = await pool.query('SELECT id, username, email, avatar_url, status FROM users WHERE id = $1', [report.target_id]);
+            targetContent = userRes.rows[0];
+        } else if (report.target_type === 'TRIP') {
+            const tripRes = await pool.query('SELECT id, title, description, status, user_id FROM trips WHERE id = $1', [report.target_id]);
+            targetContent = tripRes.rows[0];
+        } else if (report.target_type === 'MESSAGE') {
+            const msgRes = await pool.query('SELECT m.*, u.username FROM messages m JOIN users u ON m.user_id = u.id WHERE m.id = $1', [report.target_id]);
+            targetContent = msgRes.rows[0];
+        }
+
+        res.json({ ...report, targetContent });
+    } catch (err) {
+        console.error('Admin get report detail error:', err);
         res.status(500).json({ error: 'Internal server error' });
     }
 });

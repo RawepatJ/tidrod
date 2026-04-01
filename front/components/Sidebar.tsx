@@ -1,6 +1,7 @@
 'use client';
 import TripForm from './TripForm';
 import SearchTrip from './SearchTrip';
+import MyTrips from './MyTrips';
 
 interface TripData {
   destination: string;
@@ -40,7 +41,8 @@ export default function Sidebar({
   onCancelSelection,
 }: SidebarProps) {
   return (
-    <div className="w-full lg:w-96 h-full flex flex-col gap-4 overflow-y-auto pr-2 p-4">
+    <div className="w-full lg:w-96 h-full flex flex-col gap-4 overflow-y-auto">
+
       <TripForm
         onLocationSelectRequest={onLocationSelectRequest}
         onLocationSearch={onLocationSearch}
@@ -53,6 +55,7 @@ export default function Sidebar({
         onCancelSelection={onCancelSelection}
       />
       <SearchTrip onTripSelect={onTripSelect} />
+      <MyTrips onTripSelect={onTripSelect} />
     </div>
   );
 }

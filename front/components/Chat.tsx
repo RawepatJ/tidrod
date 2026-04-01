@@ -27,7 +27,6 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
   const [input, setInput] = useState('');
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [reportTarget, setReportTarget] = useState<{ type: 'TRIP' | 'USER' | 'MESSAGE', id: string } | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentUser = getUser();
@@ -143,13 +142,6 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
               Leave Chat
             </button>
           )}
-          <button 
-            onClick={() => setReportTarget({ type: 'TRIP', id: tripId })}
-            className="text-white/70 hover:text-red-400 p-1 rounded-md transition-all"
-            title="Report Trip"
-          >
-            <ShieldAlert size={16} />
-          </button>
         </div>
       </div>
 
@@ -174,18 +166,9 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
                       : 'bg-white text-[#25343F] border border-[#BFC9D1]/30 rounded-bl-md'
                   }`}
                 >
-                  {!isOwn && (
                     <div className="flex justify-between items-center mb-0.5 group/header">
                        <p className="text-xs font-semibold text-[#FF9B51]">{msg.username}</p>
-                       <button 
-                         onClick={() => setReportTarget({ type: 'MESSAGE', id: msg.id })}
-                         className="opacity-0 group-hover/header:opacity-100 text-[#BFC9D1] hover:text-red-400 transition-opacity"
-                         title="Report Message"
-                       >
-                         <Flag size={12} />
-                       </button>
                     </div>
-                  )}
                   <p className="text-sm leading-relaxed break-words">{msg.content}</p>
                   <p className={`text-[10px] mt-1 ${isOwn ? 'text-white/60' : 'text-[#BFC9D1]'}`}>
                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -219,14 +202,6 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
           </button>
         </div>
       </div>
-      {reportTarget && (
-        <ReportModal 
-          isOpen={!!reportTarget} 
-          onClose={() => setReportTarget(null)} 
-          targetType={reportTarget.type} 
-          targetId={reportTarget.id} 
-        />
-      )}
     </div>
   );
 }
