@@ -6,9 +6,7 @@ import pool from './db';
 export function setupSocket(httpServer: HttpServer): Server {
     const io = new Server(httpServer, {
         cors: {
-            origin: process.env.NODE_ENV === 'production'
-                ? ['http://localhost:3000']
-                : ['http://localhost:3000', 'http://localhost:3001'],
+            origin: process.env.FRONTEND_URL,
             methods: ['GET', 'POST'],
         },
     });

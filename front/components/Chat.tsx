@@ -20,7 +20,7 @@ interface ChatProps {
   onLeave?: () => void;
 }
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:5000';
+const WS_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export default function Chat({ tripId, onLeave }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -135,7 +135,7 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
         </h3>
         <div className="flex items-center gap-2">
           {onLeave && (
-            <button 
+            <button
               onClick={onLeave}
               className="text-xs text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1 rounded-md transition-all"
             >
@@ -160,15 +160,14 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
             return (
               <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
                 <div
-                  className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
-                    isOwn
+                  className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${isOwn
                       ? 'bg-[#FF9B51] text-white rounded-br-md'
                       : 'bg-white text-[#25343F] border border-[#BFC9D1]/30 rounded-bl-md'
-                  }`}
+                    }`}
                 >
-                    <div className="flex justify-between items-center mb-0.5 group/header">
-                       <p className="text-xs font-semibold text-[#FF9B51]">{msg.username}</p>
-                    </div>
+                  <div className="flex justify-between items-center mb-0.5 group/header">
+                    <p className="text-xs font-semibold text-[#FF9B51]">{msg.username}</p>
+                  </div>
                   <p className="text-sm leading-relaxed break-words">{msg.content}</p>
                   <p className={`text-[10px] mt-1 ${isOwn ? 'text-white/60' : 'text-[#BFC9D1]'}`}>
                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
