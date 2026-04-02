@@ -120,7 +120,7 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
   if (!currentUser) {
     return (
       <div className="bg-[#EAEFEF] rounded-2xl p-6 text-center">
-        <p className="text-[#25343F]/60">Sign in to join the conversation</p>
+        <p className="text-[#25343F]/60">เข้าสู่ระบบเพื่อร่วมการสนทนา</p>
       </div>
     );
   }
@@ -130,7 +130,7 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
       {/* Header */}
       <div className="px-4 py-3 bg-[#25343F] text-white flex items-center justify-between">
         <h3 className="font-semibold text-sm flex items-center gap-2">
-          <MessageSquare size={16} /> Trip Chat
+          <MessageSquare size={16} /> ห้องแชทของทริป
           <span className={`w-2 h-2 rounded-full ${connected ? 'bg-green-400' : 'bg-red-400'}`} />
         </h3>
         <div className="flex items-center gap-2">
@@ -139,7 +139,7 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
               onClick={onLeave}
               className="text-xs text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1 rounded-md transition-all"
             >
-              Leave Chat
+              ออกจากห้องแชท
             </button>
           )}
         </div>
@@ -148,11 +148,11 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[200px] max-h-[400px] bg-[#EAEFEF]/30">
         {loading ? (
-          <div className="text-center text-[#BFC9D1] py-8">Loading messages...</div>
+          <div className="text-center text-[#BFC9D1] py-8">กำลังโหลดข้อความ...</div>
         ) : messages.length === 0 ? (
           <div className="text-center text-[#BFC9D1] py-8">
             <MessageSquare size={28} className="mx-auto mb-2 text-[#BFC9D1]" />
-            <p className="text-sm">No messages yet. Start the conversation!</p>
+            <p className="text-sm">ยังไม่มีข้อความ เริ่มต้นคุยกันได้เลย!</p>
           </div>
         ) : (
           messages.map((msg) => {
@@ -188,7 +188,7 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={connected ? 'Type a message...' : 'Connecting...'}
+            placeholder={connected ? 'พิมพ์ข้อความที่นี่...' : 'กำลังเชื่อมต่อ...'}
             disabled={!connected}
             className="flex-1 px-4 py-2.5 rounded-xl bg-[#EAEFEF] text-[#25343F] placeholder-[#BFC9D1] text-sm outline-none focus:ring-2 focus:ring-[#FF9B51]/30 transition-all disabled:opacity-50"
           />
@@ -197,7 +197,7 @@ export default function Chat({ tripId, onLeave }: ChatProps) {
             disabled={!connected || !input.trim()}
             className="px-4 py-2.5 bg-[#FF9B51] text-white rounded-xl font-semibold text-sm hover:bg-[#e8893f] transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
           >
-            Send
+            ส่ง
           </button>
         </div>
       </div>

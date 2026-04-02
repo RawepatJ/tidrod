@@ -27,21 +27,21 @@ export default function RegisterPage() {
 
     try {
       if (!name.trim()) {
-        setError("Name is required");
+        setError("กรุณาระบุชื่อผู้ใช้");
         setIsLoading(false);
         return;
       }
       if (!gender) {
-        setError("Gender is required");
+        setError("กรุณาระบุเพศ");
         setIsLoading(false);
         return;
       }
       const data = await registerUser(name, email, password, gender);
       login(data.token);
-      addToast('Account created successfully! 🎉 Welcome to TidRod!', 'success', 5000);
+      addToast('สร้างบัญชีสำเร็จ! 🎉 ยินดีต้อนรับสู่ TidRod!', 'success', 5000);
       router.push("/home");
     } catch (err: any) {
-      const msg = err.message || "An unexpected error occurred";
+      const msg = err.message || "เกิดข้อผิดพลาดที่ไม่คาดคิด";
       setError(msg);
       addToast(msg, 'error');
     } finally {
@@ -64,7 +64,7 @@ export default function RegisterPage() {
             <h1 className="text-3xl font-bold">
               <span className="text-[#FF9B51]">Tid</span><span className="text-white">Rod</span>
             </h1>
-            <p className="text-[#BFC9D1] mt-2">Create your account</p>
+            <p className="text-[#BFC9D1] mt-2">สร้างบัญชีของคุณ</p>
           </div>
 
           {/* Error message */}
@@ -77,7 +77,7 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-[#BFC9D1] mb-1.5 ml-1">
-                Username
+                ชื่อผู้ใช้
               </label>
               <div className="relative">
                 <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#BFC9D1]/40" />
@@ -95,7 +95,7 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="gender" className="block text-sm font-medium text-[#BFC9D1] mb-1.5 ml-1">
-                Gender
+                เพศ
               </label>
               <div className="relative">
                 <Users size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#BFC9D1]/40 pointer-events-none" />
@@ -106,17 +106,17 @@ export default function RegisterPage() {
                   required
                   className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#FF9B51]/50 focus:border-[#FF9B51]/50 transition-all font-medium appearance-none"
                 >
-                  <option value="" disabled className="text-[#25343F]">Select gender</option>
-                  <option value="female" className="text-[#25343F]">Female</option>
-                  <option value="male" className="text-[#25343F]">Male</option>
-                  <option value="prefer_not" className="text-[#25343F]">Prefer not to say</option>
+                  <option value="" disabled className="text-[#25343F]">เลือกเพศ</option>
+                  <option value="female" className="text-[#25343F]">หญิง</option>
+                  <option value="male" className="text-[#25343F]">ชาย</option>
+                  <option value="prefer_not" className="text-[#25343F]">ไม่ระบุ</option>
                 </select>
               </div>
             </div>
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-[#BFC9D1] mb-1.5 ml-1">
-                Email
+                อีเมล
               </label>
               <div className="relative">
                 <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#BFC9D1]/40" />
@@ -134,7 +134,7 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-[#BFC9D1] mb-1.5 ml-1">
-                Password
+                รหัสผ่าน
               </label>
               <div className="relative">
                 <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#BFC9D1]/40" />
@@ -149,7 +149,7 @@ export default function RegisterPage() {
                   className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-[#BFC9D1]/30 focus:outline-none focus:ring-2 focus:ring-[#FF9B51]/50 focus:border-[#FF9B51]/50 transition-all font-medium"
                 />
               </div>
-              <p className="text-[10px] text-[#BFC9D1]/40 mt-1.5 ml-1">Minimum 8 characters required</p>
+              <p className="text-[10px] text-[#BFC9D1]/40 mt-1.5 ml-1">ความยาวอย่างน้อย 8 ตัวอักษร</p>
             </div>
 
             <button
@@ -161,7 +161,7 @@ export default function RegisterPage() {
                 <Loader2 size={20} className="animate-spin" />
               ) : (
                 <>
-                  Create Account
+                  สร้างบัญชี
                   <span className="group-hover:translate-x-0.5 transition-transform">→</span>
                 </>
               )}
@@ -169,9 +169,9 @@ export default function RegisterPage() {
           </form>
 
           <p className="mt-8 text-center text-sm text-[#BFC9D1]/60">
-            Already have an account?{" "}
+            มีบัญชีอยู่แล้วใช่ไหม?{" "}
             <Link href="/login" className="text-[#FF9B51] hover:text-[#e8893f] font-bold transition-colors">
-              Sign In
+              เข้าสู่ระบบ
             </Link>
           </p>
         </div>

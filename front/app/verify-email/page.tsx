@@ -20,7 +20,7 @@ function VerifyEmailContent() {
     if (!token || hasCalled) {
       if (!token) {
         setStatus("error");
-        setMessage("Missing verification token.");
+        setMessage("ไม่พบโทเค็นการยืนยัน");
       }
       return;
     }
@@ -47,11 +47,11 @@ function VerifyEmailContent() {
           }, 2000);
         } else {
           setStatus("error");
-          setMessage(data.error || "Verification failed");
+          setMessage(data.error || "การยืนยันล้มเหลว");
         }
       } catch (err) {
         setStatus("error");
-        setMessage("An error occurred during verification.");
+        setMessage("เกิดข้อผิดพลาดระหว่างการยืนยัน");
       }
     };
 
@@ -64,22 +64,22 @@ function VerifyEmailContent() {
         {status === "loading" && (
           <div className="space-y-4">
             <Loader2 size={48} className="mx-auto text-[#FF9B51] animate-spin" />
-            <h2 className="text-xl font-bold text-[#25343F]">Verifying your email...</h2>
-            <p className="text-[#25343F]/60">Please wait while we confirm your account.</p>
+            <h2 className="text-xl font-bold text-[#25343F]">กำลังยืนยันอีเมลของคุณ...</h2>
+            <p className="text-[#25343F]/60">กรุณารอสักครู่ขณะเรากำลังยืนยันบัญชีของคุณ</p>
           </div>
         )}
 
         {status === "success" && (
           <div className="space-y-4 animate-in zoom-in duration-300">
             <CheckCircle size={48} className="mx-auto text-green-500" />
-            <h2 className="text-xl font-bold text-[#25343F]">Verified!</h2>
+            <h2 className="text-xl font-bold text-[#25343F]">ยืนยันสำเร็จ!</h2>
             <p className="text-[#25343F]/60">{message}</p>
-            <p className="text-sm text-[#FF9B51]">Redirecting to login...</p>
+            <p className="text-sm text-[#FF9B51]">กำลังพาคุณไปหน้าเข้าสู่ระบบ...</p>
             <Link 
               href="/login" 
               className="inline-block mt-4 text-[#FF9B51] font-bold hover:underline"
             >
-              Click here if not redirected
+              คลิกที่นี่หากระบบไม่เปลี่ยนหน้าอัตโนมัติ
             </Link>
           </div>
         )}
@@ -87,20 +87,20 @@ function VerifyEmailContent() {
         {status === "error" && (
           <div className="space-y-4 animate-in zoom-in duration-300">
             <XCircle size={48} className="mx-auto text-red-500" />
-            <h2 className="text-xl font-bold text-[#25343F]">Verification Failed</h2>
+            <h2 className="text-xl font-bold text-[#25343F]">การยืนยันล้มเหลว</h2>
             <p className="text-[#25343F]/60">{message}</p>
             <div className="pt-4 flex flex-col gap-3">
                 <Link 
                   href="/register" 
                   className="w-full py-3 bg-[#FF9B51] text-white rounded-xl font-bold shadow-md"
                 >
-                  Back to Register
+                  กลับไปหน้าสมัครสมาชิก
                 </Link>
                 <Link 
                   href="/login" 
                   className="text-sm text-[#25343F]/40 hover:text-[#25343F] font-medium"
                 >
-                  Try Logging In
+                  ลองเข้าสู่ระบบ
                 </Link>
             </div>
           </div>

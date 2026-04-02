@@ -10,47 +10,47 @@ import { useSession } from '../components/SessionProvider';
 const FEATURES = [
   {
     icon: MapPin,
-    title: 'Pin Your Trip',
-    description: 'Mark your travel destination on the map and let others discover it.',
+    title: 'ปักหมุดทริปของคุณ',
+    description: 'ระบุจุดหมายปลายทางบนแผนที่และให้คนอื่นค้นพบความตั้งใจของคุณ',
     gradient: 'from-orange-400 to-pink-500',
   },
   {
     icon: Users,
-    title: 'Find Travel Buddies',
-    description: 'Connect with fellow travelers heading the same way.',
+    title: 'หาเพื่อนเที่ยว',
+    description: 'เชื่อมต่อกับนักเดินทางที่มีจุดหมายเดียวกันและชอบสไตล์เดียวกัน',
     gradient: 'from-blue-400 to-indigo-500',
   },
   {
     icon: MessageSquare,
-    title: 'Real-time Chat',
-    description: 'Discuss plans, share tips, and coordinate with your group.',
+    title: 'แชทแบบเรียลไทม์',
+    description: 'วางแผนทริป แบ่งปันเคล็ดลับ และประสานงานกับกลุ่มของคุณได้ทันที',
     gradient: 'from-green-400 to-emerald-500',
   },
   {
     icon: Shield,
-    title: 'Safe Community',
-    description: 'Ladies-only trips, private groups, and moderated content.',
+    title: 'ชุมชนที่ปลอดภัย',
+    description: 'ทริปสำหรับผู้หญิงโดยเฉพาะ กลุ่มส่วนตัว และการดูแลเนื้อหาที่เข้มงวด',
     gradient: 'from-purple-400 to-violet-500',
   },
   {
     icon: Star,
-    title: 'Rate & Review',
-    description: 'Share your experience and help others choose the best trips.',
+    title: 'ให้คะแนนและรีวิว',
+    description: 'แบ่งปันประสบการณ์และช่วยให้คนอื่นเลือกทริปและเพื่อนร่วมทางที่ดีที่สุด',
     gradient: 'from-amber-400 to-orange-500',
   },
   {
     icon: Globe,
-    title: 'Explore Thailand',
-    description: 'Discover amazing destinations all across the Land of Smiles.',
+    title: 'สำรวจเมืองไทย',
+    description: 'ค้นพบจุดหมายปลายทางที่น่าทึ่งทั่วสยามเมืองยิ้มที่คุณอาจไม่เคยเห็น',
     gradient: 'from-teal-400 to-cyan-500',
   },
 ];
 
 const STEPS = [
-  { step: '01', title: 'Create a Trip', description: 'Pick your destination, set the date, and pin it on the map.' },
-  { step: '02', title: 'Get Travelers', description: 'Others discover your trip and request to join.' },
-  { step: '03', title: 'Chat & Plan', description: 'Discuss details in real-time chat with your group.' },
-  { step: '04', title: 'Travel Together', description: 'Meet up, explore, and rate the experience!' },
+  { step: '01', title: 'สร้างทริป', description: 'เลือกจุดหมายปลายทาง กำหนดวันที่ และปักหมุดลงบนแผนที่' },
+  { step: '02', title: 'รอผู้ร่วมทาง', description: 'ให้นักเดินทางท่านอื่นค้นพบทริปของคุณและส่งคำขอเข้าร่วม' },
+  { step: '03', title: 'แชทและวางแผน', description: 'พูดคุยรายละเอียดและเตรียมความพร้อมผ่านระบบแชทกลุ่ม' },
+  { step: '04', title: 'เริ่มการเดินทาง!', description: 'นัดพบ ออกสำรวจ และให้คะแนนประสบการณ์ร่วมกัน' },
 ];
 
 export default function LandingPage() {

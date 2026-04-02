@@ -16,7 +16,7 @@ const MapComponent = dynamic(() => import('@/components/Map'), {
     <div className="w-full h-full bg-white animate-pulse flex items-center justify-center">
       <div className="text-center">
         <div className="w-10 h-10 border-4 border-[#FF9B51] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-[#BFC9D1] text-sm">Loading Map...</p>
+        <p className="text-[#BFC9D1] text-sm">กำลังโหลดแผนที่...</p>
       </div>
     </div>
   ),
@@ -52,13 +52,15 @@ export default function HomePage() {
     try {
       const serverMarkers = await getMarkers(bounds);
       setMarkers(
-        serverMarkers.map((m: any) => ({
-          id: m.id,
-          lat: m.latitude,
-          lon: m.longitude,
-          label: m.title,
-          color: '#FF9B51',
-        }))
+        serverMarkers
+          .filter((m: any) => m.status !== 'completed' && m.status !== 'cancelled')
+          .map((m: any) => ({
+            id: m.id,
+            lat: m.latitude,
+            lon: m.longitude,
+            label: m.title,
+            color: '#FF9B51',
+          }))
       );
     } catch (err) {
       // Silently fail
@@ -77,7 +79,7 @@ export default function HomePage() {
       const data = await getTrip(markerId);
       setTripDetail(data);
     } catch (err) {
-      addToast('Failed to load trip details', 'error');
+      addToast('โหลดรายละเอียดทริปไม่สำเร็จ', 'error');
     } finally {
       setLoadingTrip(false);
     }
@@ -113,7 +115,7 @@ export default function HomePage() {
   const handleConfirmSelection = () => {
     setSelectionMode(false);
     if (pendingLat != null && pendingLon != null) {
-      addToast('Location selected!', 'success', 2000);
+      addToast('เลือกสถานที่แล้ว!', 'success', 2000);
     }
   };
 
@@ -128,7 +130,7 @@ export default function HomePage() {
     setPendingLocationName('');
     setPendingLat(null);
     setPendingLon(null);
-    addToast('Trip added to the map!', 'success');
+    addToast('บันทึกทริปลงแผนที่แล้ว!', 'success');
   };
 
   return (
@@ -164,7 +166,7 @@ export default function HomePage() {
         {/* Selection Mode Overlay */}
         {selectionMode && (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-[#25343F]/90 backdrop-blur-sm text-white px-5 py-2.5 rounded-full shadow-lg z-20 font-medium text-sm flex items-center gap-2">
-            <MapPin size={16} /> Move the map to position the pin
+            <MapPin size={16} /> เลื่อนแผนที่เพื่อระบุตำแหน่งพิน
           </div>
         )}
 
@@ -175,14 +177,14 @@ export default function HomePage() {
             {/* Header */}
             <div className="flex justify-between items-center p-4 border-b border-[#BFC9D1]/20">
               <h2 className="font-bold text-[#25343F] truncate pr-4 text-lg">
-                {loadingTrip ? 'Loading...' : tripDetail?.title || 'Trip Details'}
+                {loadingTrip ? 'กำลังโหลด...' : tripDetail?.title || 'รายละเอียดทริป'}
               </h2>
               <div className="flex items-center gap-1 -mr-2">
                 {!loadingTrip && tripDetail && (
                   <button
                     onClick={() => setReportTripId(tripDetail.id)}
                     className="text-red-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-md transition-colors flex items-center justify-center"
-                    title="Report this Trip"
+                    title="รายงานทริปนี้"
                   >
                     <ShieldAlert size={18} />
                   </button>
@@ -212,16 +214,16 @@ export default function HomePage() {
                       <User size={12} /> {tripDetail.username}
                     </span>
                     <span className="bg-[#EAEFEF] px-2 py-1 rounded-md flex items-center gap-1">
-                      <Calendar size={12} /> {new Date(tripDetail.created_at).toLocaleDateString()}
+                      <Calendar size={12} /> {new Date(tripDetail.created_at).toLocaleDateString('th-TH')}
                     </span>
                     {tripDetail.ladiesOnly && (
                       <span className="bg-[#FF9B51]/10 text-[#FF9B51] px-2 py-1 rounded-md font-semibold flex items-center gap-1">
-                        <Users size={12} /> Ladies Only
+                        <Users size={12} /> เฉพาะผู้หญิง
                       </span>
                     )}
                     {tripDetail.status === 'completed' && (
                       <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-semibold text-xs">
-                        Completed
+                        เสร็จสิ้นแล้ว
                       </span>
                     )}
                   </div>
@@ -235,7 +237,7 @@ export default function HomePage() {
                       />
                       {tripDetail.photos.length > 1 && (
                         <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-md font-medium">
-                          +{tripDetail.photos.length - 1} more
+                          อีก +{tripDetail.photos.length - 1} รูป
                         </div>
                       )}
                     </div>
@@ -249,11 +251,11 @@ export default function HomePage() {
                     onClick={() => router.push(`/trip/${selectedTripId}`)}
                     className="w-full mt-6 py-3 bg-[#FF9B51]/10 border border-[#FF9B51]/30 text-[#FF9B51] font-semibold rounded-lg hover:bg-[#FF9B51] hover:text-white transition-all shadow-sm"
                   >
-                    View Full Details & Chat
+                    ดูรายละเอียดและห้องแชท
                   </button>
                 </div>
               ) : (
-                <div className="text-center text-[#25343F]/50 mt-10">Trip not found</div>
+                <div className="text-center text-[#25343F]/50 mt-10">ไม่พบทริปที่ต้องการ</div>
               )}
             </div>
           </div>

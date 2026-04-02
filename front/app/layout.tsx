@@ -39,8 +39,8 @@ const anakotmai = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "TidRod — Travel Map Community",
-  description: "Share travel experiences on an interactive map. Discover places through fellow travelers, chat in real-time, and explore the world together.",
+  title: "TidRod — ชุมชนนักเดินทางและแผนที่ท่องเที่ยวยอดนิยม",
+  description: "แบ่งปันประสบการณ์การเดินทางบนแผนที่ ค้นหาสถานที่ใหม่ๆ ผ่านเพื่อนร่วมทาง แชทเรียลไทม์ และออกสำรวจเมืองไทยไปด้วยกัน",
 };
 
 export default function RootLayout({
@@ -49,7 +49,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="th">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${anakotmai.variable} ${anakotmai.className} antialiased min-h-screen flex flex-col`}
       >

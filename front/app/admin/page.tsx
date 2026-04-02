@@ -16,7 +16,7 @@ export default function AdminDashboardPage() {
         const data = await fetchAuth("/api/admin/stats");
         setStats(data);
       } catch (err) {
-        console.error("Failed to load stats:", err);
+        console.error("โหลดสถิติไม่สำเร็จ:", err);
       } finally {
         setLoading(false);
       }
@@ -28,7 +28,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-[#25343F]">Dashboard Overview</h1>
+      <h1 className="text-2xl font-bold text-[#25343F]">ภาพรวมแดชบอร์ด</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-xl border border-[#BFC9D1]/30 shadow-sm flex items-center gap-4">
@@ -36,7 +36,7 @@ export default function AdminDashboardPage() {
             <Users size={32} />
           </div>
           <div>
-            <p className="text-sm font-medium text-[#BFC9D1]">Total Users</p>
+            <p className="text-sm font-medium text-[#BFC9D1]">ผู้ใช้ทั้งหมด</p>
             <p className="text-3xl font-bold text-[#25343F]">{stats?.users || 0}</p>
           </div>
         </div>
@@ -46,7 +46,7 @@ export default function AdminDashboardPage() {
             <Map size={32} />
           </div>
           <div>
-            <p className="text-sm font-medium text-[#BFC9D1]">Total Trips</p>
+            <p className="text-sm font-medium text-[#BFC9D1]">ทริปทั้งหมด</p>
             <p className="text-3xl font-bold text-[#25343F]">{stats?.trips || 0}</p>
           </div>
         </div>
@@ -56,17 +56,17 @@ export default function AdminDashboardPage() {
             <AlertTriangle size={32} />
           </div>
           <div>
-            <p className="text-sm font-medium text-[#BFC9D1]">Pending Reports</p>
+            <p className="text-sm font-medium text-[#BFC9D1]">รายงานที่ค้างอยู่</p>
             <p className="text-3xl font-bold text-[#25343F]">{stats?.pendingReports || 0}</p>
           </div>
         </div>
       </div>
       
       <div className="mt-8 bg-[#F8FAFC] p-6 rounded-xl border border-[#BFC9D1]/20">
-         <h2 className="text-lg font-semibold text-[#25343F] mb-2">Welcome to your Admin Dashboard!</h2>
+         <h2 className="text-lg font-semibold text-[#25343F] mb-2">ยินดีต้อนรับสู่แดชบอร์ดดูแลระบบ!</h2>
          <p className="text-[#25343F]/70 text-sm">
-           From here you can manage all users, review reported content, and view system logs.
-           Use the sidebar to navigate between different panels.
+           คุณสามารถจัดการผู้ใช้ ตรวจสอบรายงาน และดูบันทึกเหตุการณ์ต่างๆ ในระบบได้ที่นี่
+           ใช้แถบเมนูด้านข้างเพื่อไปยังหน้าจัดการส่วนต่างๆ ของระบบ
          </p>
       </div>
     </div>

@@ -32,12 +32,13 @@ export default function NotificationBell() {
         setActionLoading(n.id);
         try {
             await respondJoinRequest(n.related_trip_id, n.related_join_request_id, status);
-            addToast(`Successfully ${status} join request`, 'success');
+            const statusThai = status === 'approved' ? 'อนุมัติ' : 'ปฏิเสธ';
+            addToast(`ดำเนินการ${statusThai}คำขอเข้าร่วมสำเร็จ`, 'success');
             if (!n.is_read) handleMarkRead(n.id);
             // Optionally remove from list or update UI
             setNotifications(prev => prev.filter(item => item.id !== n.id));
         } catch (err: any) {
-            addToast(err.message || 'Failed to respond to request', 'error');
+            addToast(err.message || 'ดำเนินการกับคำขอไม่สำเร็จ', 'error');
         } finally {
             setActionLoading(null);
         }
@@ -117,12 +118,12 @@ export default function NotificationBell() {
     const getTimeAgo = (dateStr: string) => {
         const diff = Date.now() - new Date(dateStr).getTime();
         const mins = Math.floor(diff / 60000);
-        if (mins < 1) return 'just now';
-        if (mins < 60) return `${mins}m ago`;
+        if (mins < 1) return 'เมื่อสักครู่';
+        if (mins < 60) return `${mins} นาทีที่แล้ว`;
         const hours = Math.floor(mins / 60);
-        if (hours < 24) return `${hours}h ago`;
+        if (hours < 24) return `${hours} ชั่วโมงที่แล้ว`;
         const days = Math.floor(hours / 24);
-        return `${days}d ago`;
+        return `${days} วันที่แล้ว`;
     };
 
     if (!user) return null;
@@ -146,14 +147,14 @@ export default function NotificationBell() {
                 <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-[#BFC9D1]/30 z-50 overflow-hidden animate-fade-in">
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-[#BFC9D1]/20 bg-[#F8FAFC]">
-                        <h3 className="font-bold text-[#25343F] text-sm">Notifications</h3>
+                        <h3 className="font-bold text-[#25343F] text-sm">การแจ้งเตือน</h3>
                         {unreadCount > 0 && (
                             <button
                                 onClick={handleMarkAllRead}
                                 className="text-xs text-[#FF9B51] hover:text-[#e8893f] font-medium flex items-center gap-1 transition-colors"
                             >
                                 <CheckCheck size={14} />
-                                Mark all read
+                                อ่านทั้งหมดแล้ว
                             </button>
                         )}
                     </div>
@@ -167,7 +168,7 @@ export default function NotificationBell() {
                         ) : notifications.length === 0 ? (
                             <div className="p-8 text-center text-[#BFC9D1]">
                                 <Bell size={32} className="mx-auto mb-2 opacity-30" />
-                                <p className="text-sm">No notifications yet</p>
+                                <p className="text-sm">ยังไม่มีการแจ้งเตือน</p>
                             </div>
                         ) : (
                             notifications.map((n) => (
@@ -200,7 +201,7 @@ export default function NotificationBell() {
                                                         className="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-[10px] font-bold transition-colors flex items-center gap-1"
                                                     >
                                                         <Check size={10} />
-                                                        Accept
+                                                        ยินดีรับ
                                                     </button>
                                                     <button
                                                         onClick={(e) => handleJoinResponse(e, n, 'denied')}
@@ -208,7 +209,7 @@ export default function NotificationBell() {
                                                         className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-[10px] font-bold transition-colors flex items-center gap-1"
                                                     >
                                                         <X size={10} />
-                                                        Decline
+                                                        ปฏิเสธ
                                                     </button>
                                                 </>
                                             )}
@@ -223,7 +224,7 @@ export default function NotificationBell() {
                                                     className="px-2 py-1 bg-[#25343F]/5 hover:bg-[#25343F]/10 text-[#25343F] rounded text-[10px] font-bold transition-colors flex items-center gap-1"
                                                 >
                                                     <Eye size={10} />
-                                                    View Trip
+                                                    ดูทริป
                                                 </Link>
                                             )}
                                         </div>
@@ -247,7 +248,7 @@ export default function NotificationBell() {
                                 className="text-xs text-[#FF9B51] hover:text-[#e8893f] font-medium block text-center transition-colors"
                                 onClick={() => setIsOpen(false)}
                             >
-                                View all notifications
+                                ดูการแจ้งเตือนทั้งหมด
                             </Link>
                         </div>
                     )}

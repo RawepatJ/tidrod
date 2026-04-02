@@ -67,10 +67,10 @@ export default function MyTrips({ onTripSelect }: MyTripsProps) {
     <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#BFC9D1]/30">
       <div className="flex items-center justify-between mb-4 px-1">
         <h3 className="font-bold text-[#25343F] text-sm flex items-center gap-2">
-          <MapPin size={16} className="text-[#FF9B51]" /> My Active Trips
+          <MapPin size={16} className="text-[#FF9B51]" /> ทริปที่กำลังดำเนินการ
         </h3>
         <span className="text-[10px] font-black text-[#FF9B51] bg-[#FF9B51]/10 px-1.5 py-0.5 rounded uppercase tracking-wider">
-          {trips.filter(trip => trip.status === 'active').length}
+          {trips.filter(trip => !['completed', 'cancelled'].includes(trip.status)).length}
         </span>
       </div>
 
@@ -89,12 +89,14 @@ export default function MyTrips({ onTripSelect }: MyTripsProps) {
                 </h4>
                 <div className="flex items-center gap-3 mt-1">
                   <p className="text-[10px] text-[#25343F]/50 flex items-center gap-1 font-medium">
-                    <Calendar size={10} /> {new Date(trip.created_at).toLocaleDateString()}
+                    <Calendar size={10} /> {new Date(trip.created_at).toLocaleDateString('th-TH')}
                   </p>
                   <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${trip.status === 'in_progress' ? 'bg-blue-100 text-blue-600' :
                       trip.status === 'full' ? 'bg-amber-100 text-amber-600' : 'bg-[#FF9B51]/10 text-[#FF9B51]'
                     }`}>
-                    {trip.status}
+                    {trip.status === 'active' ? 'เปิดรับสมัคร' :
+                     trip.status === 'full' ? 'เต็มแล้ว' :
+                     trip.status === 'in_progress' ? 'กำลังเดินทาง' : trip.status}
                   </span>
                 </div>
               </div>

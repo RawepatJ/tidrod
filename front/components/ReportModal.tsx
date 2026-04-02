@@ -10,11 +10,11 @@ export interface ReportModalProps {
 }
 
 const REASONS = [
-    'Inappropriate Content',
-    'Spam or Scam',
-    'Harassment or Bullying',
-    'Violence or Hate Speech',
-    'Other'
+    'เนื้อหาไม่เหมาะสม',
+    'สแปมหรือการหลอกลวง',
+    'การคุกคามหรือกลั่นแกล้ง',
+    'ความรุนแรงหรือประทุษวาจา',
+    'อื่นๆ'
 ];
 
 export default function ReportModal({ isOpen, onClose, targetType, targetId }: ReportModalProps) {
@@ -31,13 +31,13 @@ export default function ReportModal({ isOpen, onClose, targetType, targetId }: R
         setError('');
 
         if (!reason) {
-            setError('Please select a reason.');
+            setError('กรุณาเลือกเหตุผล');
             return;
         }
 
         const token = getToken();
         if (!token) {
-            setError('You must be logged in to submit a report.');
+            setError('คุณต้องเข้าสู่ระบบเพื่อส่งรายงาน');
             return;
         }
 
@@ -52,7 +52,7 @@ export default function ReportModal({ isOpen, onClose, targetType, targetId }: R
                 onClose();
             }, 2000);
         } catch (err: any) {
-            setError(err.message || 'Failed to submit report. Please try again.');
+            setError(err.message || 'ส่งรายงานไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
         } finally {
             setIsSubmitting(false);
         }
@@ -72,9 +72,9 @@ export default function ReportModal({ isOpen, onClose, targetType, targetId }: R
                     <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center text-red-500 mb-3">
                         <ShieldAlert size={24} />
                     </div>
-                    <h2 className="text-xl font-bold text-gray-900">Report Issue</h2>
+                    <h2 className="text-xl font-bold text-gray-900">รายงานปัญหา</h2>
                     <p className="text-sm text-gray-500 mt-1">
-                        Please provide details so we can investigate.
+                        กรุณาระบุรายละเอียดเพื่อให้เจ้าหน้าที่ตรวจสอบ
                     </p>
                 </div>
 
@@ -85,8 +85,8 @@ export default function ReportModal({ isOpen, onClose, targetType, targetId }: R
                             <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center text-green-500 mx-auto mb-3">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                             </div>
-                            <h3 className="text-lg font-medium text-gray-900">Report Submitted</h3>
-                            <p className="text-sm text-gray-500 mt-1">Thank you for helping keep our community safe.</p>
+                            <h3 className="text-lg font-medium text-gray-900">ส่งรายงานเรียบร้อยแล้ว</h3>
+                            <p className="text-sm text-gray-500 mt-1">ขอบคุณที่ช่วยรักษาความปลอดภัยให้ชุมชนของเรา</p>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-4">
@@ -98,7 +98,7 @@ export default function ReportModal({ isOpen, onClose, targetType, targetId }: R
                             
                             <div className="space-y-1.5">
                                 <label className="text-sm font-medium text-gray-700 block gap-1">
-                                    Reason <span className="text-red-500">*</span>
+                                    เหตุผล <span className="text-red-500">*</span>
                                 </label>
                                 <select 
                                     className="w-full border-gray-200 rounded-xl px-4 py-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all outline-none"
@@ -106,7 +106,7 @@ export default function ReportModal({ isOpen, onClose, targetType, targetId }: R
                                     onChange={(e) => setReason(e.target.value)}
                                     disabled={isSubmitting}
                                 >
-                                    <option value="" disabled>Select a reason...</option>
+                                    <option value="" disabled>เลือกเหตุผล...</option>
                                     {REASONS.map(r => (
                                         <option key={r} value={r}>{r}</option>
                                     ))}
@@ -115,12 +115,12 @@ export default function ReportModal({ isOpen, onClose, targetType, targetId }: R
 
                             <div className="space-y-1.5">
                                 <label className="text-sm font-medium text-gray-700 block">
-                                    Additional details (Optional)
+                                    รายละเอียดเพิ่มเติม (ไม่บังคับ)
                                 </label>
                                 <textarea 
                                     className="w-full border-gray-200 rounded-xl px-4 py-3 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all outline-none resize-none"
                                     rows={4}
-                                    placeholder="Please provide any extra context to help us understand the issue..."
+                                    placeholder="กรุณาระบุรายละเอียดเพิ่มเติมเพื่อช่วยให้เราเข้าใจปัญหา..."
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
                                     disabled={isSubmitting}
@@ -134,7 +134,7 @@ export default function ReportModal({ isOpen, onClose, targetType, targetId }: R
                                     disabled={isSubmitting}
                                     className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
                                 >
-                                    Cancel
+                                    ยกเลิก
                                 </button>
                                 <button
                                     type="submit"
@@ -144,7 +144,7 @@ export default function ReportModal({ isOpen, onClose, targetType, targetId }: R
                                     {isSubmitting ? (
                                         <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                                     ) : (
-                                        'Submit Report'
+                                        'ส่งรายงาน'
                                     )}
                                 </button>
                             </div>

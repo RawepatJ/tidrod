@@ -19,18 +19,18 @@ function ResetPasswordContent() {
   useEffect(() => {
     if (!token) {
       setStatus("error");
-      setMessage("Missing or invalid reset token.");
+      setMessage("โทเค็นการรีเซ็ตไม่ถูกต้องหรือสูญหาย");
     }
   }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      addToast("Passwords do not match", "error");
+      addToast("รหัสผ่านไม่ตรงกัน", "error");
       return;
     }
     if (newPassword.length < 8) {
-      addToast("Password must be at least 8 characters", "error");
+      addToast("รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร", "error");
       return;
     }
 
@@ -44,16 +44,16 @@ function ResetPasswordContent() {
       const data = await res.json();
       if (res.ok) {
         setStatus("success");
-        addToast("Password reset successful!", "success");
+        addToast("รีเซ็ตรหัสผ่านสำเร็จ!", "success");
         setTimeout(() => router.push("/login"), 3000);
       } else {
         setStatus("error");
-        setMessage(data.error || "Reset failed");
-        addToast(data.error || "Reset failed", "error");
+        setMessage(data.error || "รีเซ็ตไม่สำเร็จ");
+        addToast(data.error || "รีเซ็ตไม่สำเร็จ", "error");
       }
     } catch (err) {
       setStatus("error");
-      setMessage("An error occurred. Please try again.");
+      setMessage("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
     }
   };
 
@@ -63,32 +63,32 @@ function ResetPasswordContent() {
         {status === "success" ? (
           <div className="text-center space-y-6 animate-in zoom-in-95 duration-300">
             <CheckCircle size={56} className="mx-auto text-green-400" />
-            <h1 className="text-2xl font-bold text-white">Password Reset!</h1>
-            <p className="text-[#BFC9D1]">Your password has been successfully updated. Redirecting you to login...</p>
+            <h1 className="text-2xl font-bold text-white">รีเซ็ตรหัสผ่านสำเร็จ!</h1>
+            <p className="text-[#BFC9D1]">รหัสผ่านของคุณถูกอัปเดตเรียบร้อยแล้ว กำลังพาคุณไปที่หน้าเข้าสู่ระบบ...</p>
             <Link href="/login" className="inline-block mt-4 text-[#FF9B51] font-bold hover:underline">
-               Go to Login
+               ไปที่หน้าเข้าสู่ระบบ
             </Link>
           </div>
         ) : status === "error" ? (
           <div className="text-center space-y-6 animate-in zoom-in-95 duration-300">
             <XCircle size={56} className="mx-auto text-red-400" />
-            <h1 className="text-2xl font-bold text-white">Reset Failed</h1>
+            <h1 className="text-2xl font-bold text-white">รีเซ็ตไม่สำเร็จ</h1>
             <p className="text-[#BFC9D1]">{message}</p>
             <Link href="/forgot-password"  className="inline-block mt-4 text-[#FF9B51] font-bold hover:underline">
-               Try again
+               ลองใหม่อีกครั้ง
             </Link>
           </div>
         ) : (
           <>
             <div className="text-center mb-10">
-              <h1 className="text-2xl font-bold text-white">Reset Password</h1>
-              <p className="text-[#BFC9D1] mt-2">Choose a strong new password</p>
+              <h1 className="text-2xl font-bold text-white">รีเซ็ตรหัสผ่าน</h1>
+              <p className="text-[#BFC9D1] mt-2">ตั้งรหัสผ่านใหม่ที่คาดเดาได้ยาก</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#BFC9D1] mb-2 ml-1">New Password</label>
+                  <label className="block text-sm font-medium text-[#BFC9D1] mb-2 ml-1">รหัสผ่านใหม่</label>
                   <div className="relative group">
                     <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#BFC9D1]/30 group-focus-within:text-[#FF9B51] transition-colors" />
                     <input
@@ -104,7 +104,7 @@ function ResetPasswordContent() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[#BFC9D1] mb-2 ml-1">Confirm Password</label>
+                  <label className="block text-sm font-medium text-[#BFC9D1] mb-2 ml-1">ยืนยันรหัสผ่านใหม่</label>
                   <div className="relative group">
                     <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#BFC9D1]/30 group-focus-within:text-[#FF9B51] transition-colors" />
                     <input
@@ -124,7 +124,7 @@ function ResetPasswordContent() {
                 disabled={status === "loading"}
                 className="w-full py-4 bg-[#FF9B51] text-white rounded-xl font-bold hover:bg-[#e8893f] transition-all disabled:opacity-50 shadow-lg shadow-[#FF9B51]/20 flex items-center justify-center gap-2"
               >
-                {status === "loading" ? <Loader2 size={20} className="animate-spin" /> : "Update Password"}
+                {status === "loading" ? <Loader2 size={20} className="animate-spin" /> : "อัปเดตรหัสผ่าน"}
               </button>
             </form>
           </>

@@ -29,17 +29,17 @@ export default function RateTripModal({
   const [error, setError] = useState('');
 
   const ratingLabels = {
-    1: 'Poor',
-    2: 'Fair',
-    3: 'Good',
-    4: 'Very Good',
-    5: 'Excellent',
+    1: 'แย่',
+    2: 'พอใช้',
+    3: 'ดี',
+    4: 'ดีมาก',
+    5: 'ยอดเยี่ยม',
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (rating === 0) {
-      setError('Please select a rating');
+      setError('กรุณาเลือกคะแนน');
       return;
     }
 
@@ -53,7 +53,7 @@ export default function RateTripModal({
       setRating(0);
       setComment('');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to save rating';
+      const errorMessage = err instanceof Error ? err.message : 'ไม่สามารถบันทึกคะแนนได้';
       console.error('Rating error:', err);
       setError(errorMessage);
     } finally {
@@ -77,8 +77,8 @@ export default function RateTripModal({
           {/* Header */}
           <div className="bg-gradient-to-r from-[#FF9B51]/10 to-[#FF9B51]/5 border-b border-[#BFC9D1]/20 px-6 py-4 flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-bold text-[#25343F]">Rate This Trip</h2>
-              <p className="text-xs text-[#25343F]/60 mt-1">Share your experience</p>
+              <h2 className="text-lg font-bold text-[#25343F]">ให้คะแนนทริปนี้</h2>
+              <p className="text-xs text-[#25343F]/60 mt-1">แบ่งปันประสบการณ์ของคุณ</p>
             </div>
             <button
               onClick={onClose}
@@ -98,14 +98,14 @@ export default function RateTripModal({
 
             {/* Trip Title */}
             <div className="bg-[#EAEFEF]/50 rounded-lg p-4 border border-[#BFC9D1]/20">
-              <p className="text-xs text-[#25343F]/60 font-semibold uppercase tracking-wider mb-1">Trip</p>
+              <p className="text-xs text-[#25343F]/60 font-semibold uppercase tracking-wider mb-1">ทริป</p>
               <p className="text-[#25343F] font-semibold line-clamp-2">{tripTitle}</p>
             </div>
 
             {/* Rating */}
             <div>
               <label className="block text-sm font-semibold text-[#25343F] mb-4">
-                Your Rating
+                คะแนนของคุณ
               </label>
               <div className="flex justify-center gap-2 mb-3">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -131,20 +131,20 @@ export default function RateTripModal({
                 </p>
               )}
               <p className="text-center text-xs text-[#25343F]/50">
-                {rating > 0 ? `You're about to give ${rating} star${rating !== 1 ? 's' : ''}` : 'Select a rating'}
+                {rating > 0 ? `คุณกำลังจะให้ ${rating} ดาว` : 'กรุณาเลือกคะแนน'}
               </p>
             </div>
 
             {/* Comment */}
             <div>
               <label className="block text-sm font-semibold text-[#25343F] mb-2">
-                Add a Comment
-                <span className="text-xs text-[#25343F]/50 font-normal ml-1">(optional)</span>
+                เพิ่มความคิดเห็น
+                <span className="text-xs text-[#25343F]/50 font-normal ml-1">(ถ้ามี)</span>
               </label>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Share what you loved about this trip... (or didn't!)"
+                placeholder="บอกเราว่าคุณประทับใจอะไรในทริปนี้... (หรือสิ่งที่ไม่ประทับใจ)"
                 maxLength={200}
                 rows={3}
                 className="w-full px-4 py-3 border border-[#BFC9D1]/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF9B51]/50 focus:border-[#FF9B51] text-[#25343F] resize-none placeholder:text-[#BFC9D1] transition-all"
@@ -155,7 +155,7 @@ export default function RateTripModal({
                 </p>
                 {comment.length > 180 && (
                   <p className="text-xs text-[#FF9B51] font-medium">
-                    {200 - comment.length} characters left
+                    เหลืออีก {200 - comment.length} ตัวอักษร
                   </p>
                 )}
               </div>
@@ -168,7 +168,7 @@ export default function RateTripModal({
                 onClick={onClose}
                 className="flex-1 px-4 py-3 bg-[#EAEFEF] hover:bg-[#BFC9D1]/30 text-[#25343F] rounded-lg font-semibold transition-all hover:shadow-md"
               >
-                Cancel
+                ยกเลิก
               </button>
               <button
                 type="submit"
@@ -178,10 +178,10 @@ export default function RateTripModal({
                 {loading ? (
                   <>
                     <Loader2 size={16} className="animate-spin mr-2" />
-                    Submitting...
+                    กำลังส่ง...
                   </>
                 ) : (
-                  `Submit Rating ${rating > 0 ? `(${rating}★)` : ''}`
+                  `ส่งคะแนน ${rating > 0 ? `(${rating}★)` : ''}`
                 )}
               </button>
             </div>

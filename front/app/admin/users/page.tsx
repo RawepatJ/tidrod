@@ -22,7 +22,7 @@ export default function AdminUsersPage() {
       setUsers(data.users);
     } catch (err) {
       console.error(err);
-      addToast("Failed to load users", "error");
+      addToast("โหลดรายชื่อผู้ใช้ไม่สำเร็จ", "error");
     } finally {
       setLoading(false);
     }
@@ -30,42 +30,43 @@ export default function AdminUsersPage() {
 
   async function toggleRole(id: string, currentRole: string) {
     const newRole = currentRole === "admin" ? "user" : "admin";
-    if (!window.confirm(`Are you sure you want to make this user an ${newRole}?`)) return;
+    const newRoleLabel = newRole === "admin" ? "ผู้ดูแลระบบ" : "ผู้ใช้ทั่วไป";
+    if (!window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการเปลี่ยนบทบาทของผู้ใช้รายนี้เป็น ${newRoleLabel}?`)) return;
 
     try {
       await fetchAuth(`/api/admin/users/${id}/role`, {
         method: "PATCH",
         body: JSON.stringify({ role: newRole }),
       });
-      addToast(`User role updated to ${newRole}`, "success");
+      addToast(`เปลี่ยนบทบาทเป็น ${newRoleLabel} สำเร็จ`, "success");
       loadUsers();
     } catch (err) {
-      addToast("Failed to update role", "error");
+      addToast("เปลี่ยนบทบาทไม่สำเร็จ", "error");
     }
   }
 
   async function changeStatus(id: string, status: 'active' | 'suspended' | 'banned') {
-    const labels: Record<string, string> = { active: 'activate', suspended: 'suspend', banned: 'ban' };
-    if (!window.confirm(`Are you sure you want to ${labels[status]} this user?`)) return;
+    const labels: Record<string, string> = { active: 'เปิดใช้งาน', suspended: 'ระงับการใช้งาน', banned: 'แบน' };
+    if (!window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการ${labels[status]}ผู้ใช้รายนี้?`)) return;
 
     try {
       await adminUpdateUserStatus(id, status);
-      addToast(`User ${status} successfully`, "success");
+      addToast(`${labels[status]}ผู้ใช้สำเร็จ`, "success");
       loadUsers();
     } catch (err: any) {
-      addToast(err.message || "Failed to update user status", "error");
+      addToast(err.message || "อัปเดตสถานะไม่สำเร็จ", "error");
     }
   }
 
   async function deleteUser(id: string) {
-    if (!window.confirm("WARNING: This will permanently delete the user and all their trips. Continue?")) return;
+    if (!window.confirm("คำเตือน: การกระทำนี้จะลบผู้ใช้ออกจากระบบอย่างถาวรรวมถึงทริปทั้งหมดของผู้ใช้ด้วย คุณต้องการดำเนินการต่อหรือไม่?")) return;
 
     try {
       await fetchAuth(`/api/admin/users/${id}`, { method: "DELETE" });
-      addToast("User deleted successfully", "success");
+      addToast("ลบผู้ใช้สำเร็จ", "success");
       loadUsers();
     } catch (err) {
-      addToast("Failed to delete user", "error");
+      addToast("ลบผู้ใช้ไม่สำเร็จ", "error");
     }
   }
 
@@ -78,25 +79,25 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-[#25343F]">Users Management</h1>
+        <h1 className="text-2xl font-bold text-[#25343F]">จัดการผู้ใช้</h1>
         <span className="bg-[#F2F4F7] text-[#25343F] px-4 py-1.5 rounded-full text-sm font-medium">
-          {users.length} Users
+          {users.length} ผู้ใช้
         </span>
       </div>
 
       {loading ? (
-        <p className="text-[#BFC9D1]">Loading users...</p>
+        <p className="text-[#BFC9D1]">กำลังโหลดรายชื่อผู้ใช้...</p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-[#BFC9D1]/30">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#F8FAFC] border-b border-[#BFC9D1]/30">
-                <th className="p-4 font-semibold text-sm text-[#25343F]">Username</th>
-                <th className="p-4 font-semibold text-sm text-[#25343F]">Email</th>
-                <th className="p-4 font-semibold text-sm text-[#25343F]">Role</th>
-                <th className="p-4 font-semibold text-sm text-[#25343F]">Status</th>
-                <th className="p-4 font-semibold text-sm text-[#25343F]">Joined</th>
-                <th className="p-4 font-semibold text-sm text-[#25343F]">Actions</th>
+                <th className="p-4 font-semibold text-sm text-[#25343F]">ชื่อผู้ใช้</th>
+                <th className="p-4 font-semibold text-sm text-[#25343F]">อีเมล</th>
+                <th className="p-4 font-semibold text-sm text-[#25343F]">บทบาท</th>
+                <th className="p-4 font-semibold text-sm text-[#25343F]">สถานะ</th>
+                <th className="p-4 font-semibold text-sm text-[#25343F]">เข้าร่วมเมื่อ</th>
+                <th className="p-4 font-semibold text-sm text-[#25343F]">จัดการ</th>
               </tr>
             </thead>
             <tbody>
@@ -106,12 +107,12 @@ export default function AdminUsersPage() {
                   <td className="p-4 text-sm text-[#25343F]/70">{user.email}</td>
                   <td className="p-4">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${user.role === 'admin' ? 'bg-[#FF9B51]/10 text-[#FF9B51]' : 'bg-[#EAEFEF] text-[#25343F]/70'}`}>
-                      {user.role}
+                      {user.role === 'admin' ? 'แอดมิน' : 'ผู้ใช้'}
                     </span>
                   </td>
                   <td className="p-4">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${statusColors[user.status] || statusColors.active}`}>
-                      {user.status || 'active'}
+                      {user.status === 'active' ? 'ปกติ' : user.status === 'suspended' ? 'ถูกระงับ' : user.status === 'banned' ? 'ถูกแบน' : 'ปกติ'}
                     </span>
                   </td>
                   <td className="p-4 text-sm text-[#25343F]/70">
@@ -121,7 +122,7 @@ export default function AdminUsersPage() {
                     <button
                       onClick={() => toggleRole(user.id, user.role)}
                       className="p-2 text-[#25343F]/50 hover:text-[#FF9B51] hover:bg-[#FF9B51]/10 rounded-lg transition-colors"
-                      title="Toggle Admin Role"
+                      title="เปลี่ยนบทบาท (แอดมิน/ผู้ใช้)"
                     >
                       <UserCog size={18} />
                     </button>
@@ -129,7 +130,7 @@ export default function AdminUsersPage() {
                       <button
                         onClick={() => changeStatus(user.id, 'suspended')}
                         className="p-2 text-[#25343F]/50 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                        title="Suspend User"
+                        title="ระงับการใช้งาน"
                       >
                         <ShieldOff size={18} />
                       </button>
@@ -137,7 +138,7 @@ export default function AdminUsersPage() {
                       <button
                         onClick={() => changeStatus(user.id, 'active')}
                         className="p-2 text-amber-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                        title="Activate User"
+                        title="เปิดใช้งาน"
                       >
                         <ShieldCheck size={18} />
                       </button>
@@ -146,7 +147,7 @@ export default function AdminUsersPage() {
                       <button
                         onClick={() => changeStatus(user.id, 'banned')}
                         className="p-2 text-[#25343F]/50 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Ban User"
+                        title="แบนผู้ใช้"
                       >
                         <Ban size={18} />
                       </button>
@@ -154,7 +155,7 @@ export default function AdminUsersPage() {
                       <button
                         onClick={() => changeStatus(user.id, 'active')}
                         className="p-2 text-red-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                        title="Unban User"
+                        title="ยกเลิกการแบน"
                       >
                         <ShieldCheck size={18} />
                       </button>
@@ -162,7 +163,7 @@ export default function AdminUsersPage() {
                     <button
                       onClick={() => deleteUser(user.id)}
                       className="p-2 text-[#25343F]/50 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Delete User"
+                      title="ลบผู้ใช้"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -172,7 +173,7 @@ export default function AdminUsersPage() {
             </tbody>
           </table>
           {users.length === 0 && (
-             <div className="p-8 text-center text-[#BFC9D1]">No users found.</div>
+             <div className="p-8 text-center text-[#BFC9D1]">ไม่พบรายชื่อผู้ใช้</div>
           )}
         </div>
       )}

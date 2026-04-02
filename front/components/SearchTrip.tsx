@@ -68,7 +68,7 @@ export default function SearchTrip({ onTripSelect }: SearchTripProps) {
           <Search size={18} className="text-[#BFC9D1] flex-shrink-0" />
           <input
             type="text"
-            placeholder="Search trips..."
+            placeholder="ค้นหาทริป..."
             className="flex-1 text-sm text-[#25343F] placeholder:text-[#BFC9D1] outline-none bg-transparent"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -103,7 +103,7 @@ export default function SearchTrip({ onTripSelect }: SearchTripProps) {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[#25343F] truncate">{trip.title}</p>
                 <p className="text-xs text-[#25343F]/50 mt-0.5">
-                  by {trip.username} · {new Date(trip.created_at).toLocaleDateString()}
+                  โดย {trip.username} · {new Date(trip.created_at).toLocaleDateString('th-TH')}
                 </p>
               </div>
             </button>
@@ -114,7 +114,7 @@ export default function SearchTrip({ onTripSelect }: SearchTripProps) {
       {isFocused && query.length >= 2 && !isSearching && results.length === 0 && (
         <div className="absolute z-30 w-full mt-2 bg-white rounded-xl shadow-2xl border border-[#BFC9D1]/30 p-6 text-center animate-fade-in">
           <Search size={24} className="mx-auto mb-2 text-[#BFC9D1]" />
-          <p className="text-sm text-[#BFC9D1]">No trips found</p>
+          <p className="text-sm text-[#BFC9D1]">ไม่พบทริปที่ค้นหา</p>
         </div>
       )}
     </div>

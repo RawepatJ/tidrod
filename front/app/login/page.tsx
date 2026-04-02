@@ -26,10 +26,10 @@ export default function LoginPage() {
     try {
       const data = await loginUser(email, password);
       login(data.token);
-      addToast('Welcome back! 👋', 'success');
+      addToast('ยินดีต้อนรับกลับมา! 👋', 'success');
       router.push("/home");
     } catch (err: any) {
-      const msg = err.message || "An unexpected error occurred";
+      const msg = err.message || "เกิดข้อผิดพลาดที่ไม่คาดคิด";
       setError(msg);
       addToast(msg, 'error');
     } finally {
@@ -52,7 +52,7 @@ export default function LoginPage() {
             <h1 className="text-4xl font-bold tracking-tight">
               <span className="text-[#FF9B51]">Tid</span><span className="text-white">Rod</span>
             </h1>
-            <p className="text-[#BFC9D1] mt-3 font-medium">Welcome back, traveler</p>
+            <p className="text-[#BFC9D1] mt-3 font-medium">ยินดีต้อนรับกลับมา นักเดินทาง</p>
           </div>
 
           {/* Error message */}
@@ -65,7 +65,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-[#BFC9D1] mb-2 ml-1">
-                Email Address
+                ที่อยู่อีเมล
               </label>
               <div className="relative group">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#BFC9D1]/40 group-focus-within:text-[#FF9B51] transition-colors">
@@ -86,7 +86,7 @@ export default function LoginPage() {
             <div>
               <div className="flex justify-between items-center mb-2 ml-1">
                 <label htmlFor="password" className="text-sm font-medium text-[#BFC9D1]">
-                  Password
+                  รหัสผ่าน
                 </label>
               </div>
               <div className="relative group">
@@ -114,7 +114,7 @@ export default function LoginPage() {
                 <Loader2 size={20} className="animate-spin" />
               ) : (
                 <>
-                  Sign In
+                  เข้าสู่ระบบ
                   <span className="group-hover:translate-x-0.5 transition-transform">→</span>
                 </>
               )}
@@ -122,9 +122,9 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-10 text-center text-sm text-[#BFC9D1]/60">
-            Don&apos;t have an account?{" "}
+            ยังไม่มีบัญชีใช่ไหม?{" "}
             <Link href="/register" className="text-[#FF9B51] hover:text-[#e8893f] font-bold transition-colors">
-              Sign Up
+              สมัครสมาชิก
             </Link>
           </p>
         </div>

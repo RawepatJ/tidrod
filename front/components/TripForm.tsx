@@ -91,8 +91,8 @@ export default function TripForm({
       days.push({
         date: d.toISOString().split('T')[0],
         day: d.getDate(),
-        weekday: d.toLocaleDateString('en-US', { weekday: 'short' }),
-        month: d.toLocaleDateString('en-US', { month: 'short' }),
+        weekday: d.toLocaleDateString('th-TH', { weekday: 'short' }),
+        month: d.toLocaleDateString('th-TH', { month: 'short' }),
         isToday: i === 0,
       });
     }
@@ -157,14 +157,14 @@ export default function TripForm({
 
     const token = getToken();
     if (!token) {
-      setSubmitError('Please sign in to create a trip');
-      addToast('Please sign in to create a trip', 'warning');
+      setSubmitError('กรุณาเข้าสู่ระบบเพื่อสร้างทริป');
+      addToast('กรุณาเข้าสู่ระบบเพื่อสร้างทริป', 'warning');
       return;
     }
 
     if (ladiesOnly && ladiesOnlyBlocked) {
-      setSubmitError('Only women can create ladies-only trips');
-      addToast('Only women can create ladies-only trips', 'error');
+      setSubmitError('เฉพาะผู้หญิงเท่านั้นที่สามารถสร้างทริปสำหรับผู้หญิงได้');
+      addToast('เฉพาะผู้หญิงเท่านั้นที่สามารถสร้างทริปสำหรับผู้หญิงได้', 'error');
       return;
     }
 
@@ -217,7 +217,7 @@ export default function TripForm({
       setPhotos([]);
       setPhotoPreviewUrls([]);
     } catch (err: any) {
-      const msg = err.message || 'Failed to create trip';
+      const msg = err.message || 'สร้างทริปไม่สำเร็จ';
       setSubmitError(msg);
       addToast(msg, 'error');
     } finally {
@@ -243,10 +243,10 @@ export default function TripForm({
             <MapPin size={28} className="text-[#FF9B51]" />
           </div>
           <h3 className="text-xl font-bold text-[#25343F] mb-2">
-            Choose Location
+            เลือกสถานที่
           </h3>
           <p className="text-[#25343F]/60 mb-4 text-sm">
-            Move the map to position the pin at your location.
+            เลื่อนแผนที่เพื่อปักหมุดตำแหน่งนัดพบของคุณ
           </p>
 
           {selectedLat != null && selectedLon != null && (
@@ -260,13 +260,13 @@ export default function TripForm({
               onClick={onCancelSelection}
               className="flex-1 py-2.5 px-4 border border-[#BFC9D1] text-[#25343F]/70 rounded-xl hover:bg-[#EAEFEF] font-medium transition-colors flex items-center justify-center gap-2"
             >
-              <X size={16} /> Cancel
+              <X size={16} /> ยกเลิก
             </button>
             <button
               onClick={onConfirmSelection}
               className="flex-1 py-2.5 px-4 bg-[#FF9B51] text-white rounded-xl hover:bg-[#e8893f] shadow-lg hover:shadow-xl font-bold transition-all flex items-center justify-center gap-2"
             >
-              <Check size={16} /> Confirm
+              <Check size={16} /> ตกลง
             </button>
           </div>
         </div>
@@ -304,12 +304,12 @@ export default function TripForm({
                   <div className="w-12 h-12 bg-[#FF9B51]/10 rounded-full flex items-center justify-center mx-auto mb-2">
                     <Plane size={24} className="text-[#FF9B51]" />
                   </div>
-                  <h2 className="text-xl font-bold text-[#25343F]">I want to go...</h2>
-                  <p className="text-sm text-[#25343F]/50 mt-1">Where are you headed?</p>
+                  <h2 className="text-xl font-bold text-[#25343F]">ฉันอยากไปที่...</h2>
+                  <p className="text-sm text-[#25343F]/50 mt-1">จุดหมายปลายทางของคุณคือที่ไหน?</p>
                 </div>
                 <input
                   type="text"
-                  placeholder="e.g. Bangkok, Chiang Mai..."
+                  placeholder="เช่น กรุงเทพฯ, เชียงใหม่..."
                   className="w-full p-3 border-2 border-[#BFC9D1]/30 rounded-xl bg-[#EAEFEF]/50 text-[#25343F] focus:border-[#FF9B51] focus:ring-2 focus:ring-[#FF9B51]/20 outline-none transition-all text-center text-lg"
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
@@ -320,7 +320,7 @@ export default function TripForm({
                   disabled={!canGoNext()}
                   className="w-full mt-5 py-3 rounded-xl font-bold text-white transition-all duration-200 bg-[#FF9B51] hover:bg-[#e8893f] disabled:bg-[#BFC9D1] disabled:cursor-not-allowed shadow-lg hover:shadow-xl disabled:shadow-none flex items-center justify-center gap-2"
                 >
-                  Next <ChevronRight size={18} />
+                  ถัดไป <ChevronRight size={18} />
                 </button>
               </div>
             )}
@@ -332,8 +332,8 @@ export default function TripForm({
                   <div className="w-12 h-12 bg-[#FF9B51]/10 rounded-full flex items-center justify-center mx-auto mb-2">
                     <Calendar size={24} className="text-[#FF9B51]" />
                   </div>
-                  <h2 className="text-xl font-bold text-[#25343F]">When?</h2>
-                  <p className="text-sm text-[#25343F]/50 mt-1">Pick a day for your trip</p>
+                  <h2 className="text-xl font-bold text-[#25343F]">ไปเมื่อไหร่?</h2>
+                  <p className="text-sm text-[#25343F]/50 mt-1">เลือกวันที่คุณต้องการออกเดินทาง</p>
                 </div>
 
                 <div className="grid grid-cols-7 gap-1.5 mb-5">
@@ -364,7 +364,7 @@ export default function TripForm({
                       : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 text-[#25343F]/60 hover:border-[#BFC9D1]'
                       }`}
                   >
-                    <Clock size={14} /> Flexible
+                    <Clock size={14} /> ยืดหยุ่น
                   </button>
                   <button
                     onClick={() => setTimeOption('specific')}
@@ -373,7 +373,7 @@ export default function TripForm({
                       : 'border-[#BFC9D1]/30 bg-[#EAEFEF]/50 text-[#25343F]/60 hover:border-[#BFC9D1]'
                       }`}
                   >
-                    <Clock size={14} /> Set time
+                    <Clock size={14} /> ระบุเวลา
                   </button>
                 </div>
 
@@ -393,14 +393,14 @@ export default function TripForm({
                     onClick={() => setStep(1)}
                     className="flex-1 py-3 rounded-xl font-bold text-[#25343F]/60 bg-[#EAEFEF] hover:bg-[#BFC9D1]/30 transition-all flex items-center justify-center gap-2"
                   >
-                    <ChevronLeft size={18} /> Back
+                    <ChevronLeft size={18} /> ย้อนกลับ
                   </button>
                   <button
                     onClick={() => setStep(3)}
                     disabled={!canGoNext()}
                     className="flex-1 py-3 rounded-xl font-bold text-white bg-[#FF9B51] hover:bg-[#e8893f] disabled:bg-[#BFC9D1] disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none flex items-center justify-center gap-2"
                   >
-                    Next <ChevronRight size={18} />
+                    ถัดไป <ChevronRight size={18} />
                   </button>
                 </div>
               </div>
@@ -413,9 +413,9 @@ export default function TripForm({
                   <div className="w-12 h-12 bg-[#FF9B51]/10 rounded-full flex items-center justify-center mx-auto mb-2">
                     <MapPin size={24} className="text-[#FF9B51]" />
                   </div>
-                  <h2 className="text-xl font-bold text-[#25343F]">Add pin to map</h2>
+                  <h2 className="text-xl font-bold text-[#25343F]">ปักหมุดบนแผนที่</h2>
                   <p className="text-sm text-[#25343F]/50 mt-1">
-                    Search or tap the map to set your meetup point
+                    ค้นหาหรือแตะบนแผนที่เพื่อระบุจุดนัดพบ
                   </p>
                 </div>
 
@@ -423,7 +423,7 @@ export default function TripForm({
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="Search in Thailand..."
+                      placeholder="ค้นหาสถานที่ในไทย..."
                       className="flex-1 p-3 border-2 border-[#BFC9D1]/30 rounded-xl bg-[#EAEFEF]/50 text-[#25343F] focus:border-[#FF9B51] outline-none text-sm"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -458,13 +458,13 @@ export default function TripForm({
                   onClick={() => onLocationSelectRequest()}
                   className="w-full mb-3 py-3 rounded-xl font-semibold text-sm transition-all duration-200 border-2 border-dashed border-[#FF9B51]/40 text-[#FF9B51] bg-[#FF9B51]/5 hover:bg-[#FF9B51]/10 flex items-center justify-center gap-2"
                 >
-                  <MapIcon size={16} /> Select on Map
+                  <MapIcon size={16} /> เลือกจากแผนที่
                 </button>
 
                 {locationName && (
                   <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-800 animate-fade-in flex items-start gap-2">
                     <Check size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
-                    <span><strong>Selected:</strong> {locationName}</span>
+                    <span><strong>เลือกแล้ว:</strong> {locationName}</span>
                   </div>
                 )}
 
@@ -473,14 +473,14 @@ export default function TripForm({
                     onClick={() => setStep(2)}
                     className="flex-1 py-3 rounded-xl font-bold text-[#25343F]/60 bg-[#EAEFEF] hover:bg-[#BFC9D1]/30 transition-all flex items-center justify-center gap-2"
                   >
-                    <ChevronLeft size={18} /> Back
+                    <ChevronLeft size={18} /> ย้อนกลับ
                   </button>
                   <button
                     onClick={handleSetLocation}
                     disabled={!canGoNext()}
                     className="flex-1 py-3 rounded-xl font-bold text-white bg-[#FF9B51] hover:bg-[#e8893f] disabled:bg-[#BFC9D1] disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl disabled:shadow-none flex items-center justify-center gap-2"
                   >
-                    {locationLat != null && locationLon != null ? <>Next <ChevronRight size={18} /></> : <>Set Location <ChevronRight size={18} /></>}
+                    {locationLat != null && locationLon != null ? <>ถัดไป <ChevronRight size={18} /></> : <>ระบุสถานที่ <ChevronRight size={18} /></>}
                   </button>
                 </div>
               </div>
@@ -493,8 +493,8 @@ export default function TripForm({
                   <div className="w-12 h-12 bg-[#FF9B51]/10 rounded-full flex items-center justify-center mx-auto mb-2">
                     <Users size={24} className="text-[#FF9B51]" />
                   </div>
-                  <h2 className="text-xl font-bold text-[#25343F]">Final details</h2>
-                  <p className="text-sm text-[#25343F]/50 mt-1">Set privacy & add photos</p>
+                  <h2 className="text-xl font-bold text-[#25343F]">รายละเอียดสุดท้าย</h2>
+                  <p className="text-sm text-[#25343F]/50 mt-1">ตั้งค่าความเป็นส่วนตัวและเพิ่มรูปภาพ</p>
                 </div>
 
                 <div className="flex flex-col gap-3 mb-5">
@@ -508,8 +508,8 @@ export default function TripForm({
                     <div className="flex items-center gap-3">
                       <Globe size={22} className="text-[#FF9B51]" />
                       <div>
-                        <div className="font-bold text-[#25343F]">Open</div>
-                        <div className="text-xs text-[#25343F]/50">Anyone can join</div>
+                        <div className="font-bold text-[#25343F]">สาธารณะ</div>
+                        <div className="text-xs text-[#25343F]/50">ทุกคนสามารถขอเข้าร่วมได้</div>
                       </div>
                       {privacy === 'open' && (
                         <Check size={18} className="ml-auto text-[#FF9B51]" />
@@ -527,8 +527,8 @@ export default function TripForm({
                     <div className="flex items-center gap-3">
                       <Lock size={22} className="text-[#FF9B51]" />
                       <div>
-                        <div className="font-bold text-[#25343F]">Private</div>
-                        <div className="text-xs text-[#25343F]/50">Approval required</div>
+                        <div className="font-bold text-[#25343F]">ส่วนตัว</div>
+                        <div className="text-xs text-[#25343F]/50">ต้องได้รับการอนุมัติจากคุณเพื่อเข้าร่วม</div>
                       </div>
                       {privacy === 'private' && (
                         <Check size={18} className="ml-auto text-[#FF9B51]" />
@@ -540,7 +540,7 @@ export default function TripForm({
                 <div className="grid grid-cols-2 gap-4 mb-5">
                   <div className="space-y-2">
                     <label className="block text-[10px] font-bold text-[#25343F]/40 uppercase tracking-widest ml-1">
-                      Lobby Size
+                      จำนวนสมาชิก
                     </label>
                     <div className="relative">
                       <Users size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#25343F]/30" />
@@ -557,7 +557,7 @@ export default function TripForm({
 
                   <div className="space-y-2">
                     <label className="block text-[10px] font-bold text-[#25343F]/40 uppercase tracking-widest ml-1">
-                      Ladies Only
+                      เฉพาะผู้หญิง
                     </label>
                     <button
                       onClick={() => !ladiesOnlyBlocked && setLadiesOnly(!ladiesOnly)}
@@ -571,7 +571,7 @@ export default function TripForm({
                         <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-transform duration-300 ${ladiesOnly ? 'translate-x-6' : 'translate-x-1'}`} />
                       </div>
                       <span className={`text-sm font-bold ${ladiesOnly ? 'text-[#FF9B51]' : 'text-[#25343F]/40'}`}>
-                        {ladiesOnly ? 'Yes' : 'No'}
+                        {ladiesOnly ? 'ใช่' : 'ไม่'}
                       </span>
                     </button>
                   </div>
@@ -580,10 +580,10 @@ export default function TripForm({
                 {/* Photo Upload */}
                 <div className="mb-5">
                   <label className="block text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-2">
-                    Photos (optional)
+                    รูปภาพ (ถ้ามี)
                   </label>
                   <label className="flex items-center justify-center gap-2 py-3 px-4 border-2 border-dashed border-[#BFC9D1]/40 rounded-xl text-[#25343F]/50 text-sm cursor-pointer hover:border-[#FF9B51]/40 hover:bg-[#FF9B51]/5 transition-all">
-                    <Camera size={16} /> Add photos
+                    <Camera size={16} />เพิ่มรูปภาพ
                     <input
                       type="file"
                       accept="image/*"
@@ -622,14 +622,14 @@ export default function TripForm({
                     onClick={() => setStep(3)}
                     className="flex-1 py-3 rounded-xl font-bold text-[#25343F]/60 bg-[#EAEFEF] hover:bg-[#BFC9D1]/30 transition-all flex items-center justify-center gap-2"
                   >
-                    <ChevronLeft size={18} /> Back
+                    <ChevronLeft size={18} /> ย้อนกลับ
                   </button>
                   <button
                     onClick={handleAddToMap}
                     disabled={isSubmitting}
                     className="flex-1 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-[#FF9B51] to-[#e8893f] hover:from-[#e8893f] hover:to-[#d47a30] transition-all shadow-lg hover:shadow-xl disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> Creating...</> : <><MapPin size={16} /> Add to map</>}
+                    {isSubmitting ? <><Loader2 size={16} className="animate-spin" /> กำลังสร้าง...</> : <><MapPin size={16} /> สร้างทริปเลย</>}
                   </button>
                 </div>
               </div>

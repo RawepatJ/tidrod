@@ -30,7 +30,7 @@ export default function AdminLogsPage() {
       setLogs(data.logs);
     } catch (err) {
       console.error(err);
-      addToast("Failed to load logs", "error");
+      addToast("โหลดบันทึกไม่สำเร็จ", "error");
     } finally {
       setLoading(false);
     }
@@ -42,16 +42,16 @@ export default function AdminLogsPage() {
         <div className="bg-[#BFC9D1]/20 p-2 rounded-lg text-[#25343F]">
           <Activity size={24} />
         </div>
-        <h1 className="text-2xl font-bold text-[#25343F]">System Logs</h1>
+        <h1 className="text-2xl font-bold text-[#25343F]">บันทึกระบบ</h1>
       </div>
 
       {loading ? (
-        <p className="text-[#BFC9D1]">Loading logs...</p>
+        <p className="text-[#BFC9D1]">กำลังโหลดบันทึก...</p>
       ) : (
         <div className="space-y-4">
           {logs.length === 0 ? (
             <div className="p-8 text-center border border-dashed border-[#BFC9D1]/50 rounded-xl text-[#BFC9D1]">
-              No system logs found. Logs will appear here when important actions occur.
+              ไม่พบบันทึกระบบ บันทึกจะแสดงที่นี่เมื่อมีการดำเนินการสำคัญเกิดขึ้น
             </div>
           ) : (
             logs.map((log) => (
@@ -61,16 +61,16 @@ export default function AdminLogsPage() {
                     {log.action}
                   </span>
                   <span className="text-xs text-[#BFC9D1]">
-                    {new Date(log.created_at).toLocaleString()}
+                    {new Date(log.created_at).toLocaleString('th-TH')}
                   </span>
                 </div>
                 
                 <div className="text-[#25343F]/80">
-                  <span className="font-medium">User: </span>
-                  {log.performer || "System/Unknown"} 
+                  <span className="font-medium">ผู้ดำเนินการ: </span>
+                  {log.performer || "ระบบ / ไม่ทราบชื่อ"} 
                   <span className="mx-2 text-[#BFC9D1]">|</span>
-                  <span className="font-medium">Target: </span>
-                  {log.target_type} ({log.target_id || "none"})
+                  <span className="font-medium">เป้าหมาย: </span>
+                  {log.target_type === 'USER' ? 'ผู้ใช้' : log.target_type === 'TRIP' ? 'ทริป' : log.target_type === 'REPORT' ? 'รายงาน' : log.target_type} ({log.target_id || "ไม่มี"})
                 </div>
                 
                 {log.details && (

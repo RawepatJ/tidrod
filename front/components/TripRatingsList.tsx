@@ -18,8 +18,8 @@ export default function TripRatingsList({ ratings }: TripRatingsListProps) {
     return (
       <div className="text-center py-12 text-[#BFC9D1]">
         <span className="text-4xl block mb-3">⭐</span>
-        <p className="font-semibold">No ratings yet</p>
-        <p className="text-sm mt-1">Be the first to rate this trip!</p>
+        <p className="font-semibold">ยังไม่มีคะแนนรีวิว</p>
+        <p className="text-sm mt-1">เป็นคนแรกที่ให้คะแนนทริปนี้!</p>
       </div>
     );
   }
@@ -57,7 +57,7 @@ export default function TripRatingsList({ ratings }: TripRatingsListProps) {
                 </p>
               )}
               <p className="text-xs text-[#25343F]/40 font-medium">
-                {new Date(rating.created_at).toLocaleDateString('en-US', {
+                {new Date(rating.created_at).toLocaleDateString('th-TH', {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric',

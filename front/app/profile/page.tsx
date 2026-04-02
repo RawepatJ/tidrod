@@ -24,10 +24,10 @@ interface UserProfile {
 }
 
 const GENDER_LABELS: Record<string, string> = {
-  male: 'Male',
-  female: 'Female',
-  prefer_not: 'Prefer not to say',
-  other: 'Other',
+  male: 'ชาย',
+  female: 'หญิง',
+  prefer_not: 'ไม่ระบุ',
+  other: 'อื่นๆ',
 };
 
 interface UserTrip {
@@ -68,7 +68,7 @@ export default function ProfilePage() {
       
       if (!token) {
         console.error('No authentication token found');
-        setError('Authentication token not found. Please log in.');
+        setError('ไม่พบกุญแจสำหรับการเข้าถึงระบบ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
         setLoading(false);
         router.push('/login');
         return;
@@ -106,7 +106,7 @@ export default function ProfilePage() {
 
       setLoading(false);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load profile';
+      const errorMessage = err instanceof Error ? err.message : 'โหลดข้อมูลโปรไฟล์ไม่สำเร็จ';
       console.error('Failed to load profile:', err);
       setError(errorMessage);
       setLoading(false);
@@ -127,10 +127,10 @@ export default function ProfilePage() {
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-10 text-center shadow-lg">
             <AlertTriangle size={48} className="mx-auto mb-6 text-red-500" />
-            <h2 className="text-2xl font-bold text-red-900 mb-3">Failed to Load Profile</h2>
+            <h2 className="text-2xl font-bold text-red-900 mb-3">โหลดข้อมูลโปรไฟล์ไม่สำเร็จ</h2>
             <p className="text-red-700 mb-5 text-lg">{error}</p>
             <p className="text-base text-red-600 mb-8">
-              Make sure the backend server is running on port 5000
+              กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือลองใหม่อีกครั้งในภายหลัง
             </p>
             <button
               onClick={() => {
@@ -140,7 +140,7 @@ export default function ProfilePage() {
               }}
               className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-semibold transition-all shadow-lg hover:shadow-xl active:scale-95"
             >
-              Retry
+              ลองใหม่อีกครั้ง
             </button>
           </div>
         </div>
@@ -153,16 +153,16 @@ export default function ProfilePage() {
       <main className="flex-1 bg-gradient-to-b from-[#EAEFEF] to-[#E0E8EA] flex items-center justify-center pt-22">
         <div className="text-center px-6">
           <User size={64} className="mx-auto mb-6 text-[#BFC9D1]" />
-          <h2 className="text-2xl font-bold text-[#25343F] mb-3">Profile Not Found</h2>
+          <h2 className="text-2xl font-bold text-[#25343F] mb-3">ไม่พบข้อมูลโปรไฟล์</h2>
           <Link href="/login" className="text-[#FF9B51] text-lg font-semibold hover:underline transition-all">
-            Sign in to view your profile
+            เข้าสู่ระบบเพื่อดูโปรไฟล์ของคุณ
           </Link>
         </div>
       </main>
     );
   }
 
-  const joinDate = new Date(profile.created_at).toLocaleDateString('en-US', {
+  const joinDate = new Date(profile.created_at).toLocaleDateString('th-TH', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -231,7 +231,7 @@ export default function ProfilePage() {
                   onClick={() => setIsEditModalOpen(true)}
                   className="px-8 py-4 bg-gradient-to-r from-[#FF9B51] to-[#e8893f] hover:from-[#e8893f] hover:to-[#d67a32] text-white rounded-2xl text-base font-bold transition-all shadow-lg hover:shadow-xl hover:shadow-[#FF9B51]/30 flex-shrink-0 w-full sm:w-auto active:scale-95 hover:-translate-y-1"
                 >
-                  <Pencil size={16} className="mr-1" /> Edit Profile
+                  <Pencil size={16} className="mr-1" /> แก้ไขโปรไฟล์
                 </button>
               </div>
             </div>
@@ -243,19 +243,19 @@ export default function ProfilePage() {
           <StatCard
             icon="✈️"
             value={trips.length}
-            label={`Trip${trips.length !== 1 ? 's' : ''}`}
+            label="ทริป"
             accentColor="from-[#FF9B51] to-[#e8893f]"
           />
           <StatCard
             icon="📅"
-            value={new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-            label={new Date(profile.created_at).getFullYear().toString()}
+            value={new Date(profile.created_at).toLocaleDateString('th-TH', { month: 'short', day: 'numeric' })}
+            label={(new Date(profile.created_at).getFullYear() + 543).toString()}
             accentColor="from-[#5DADE2] to-[#3498DB]"
           />
           <StatCard
             icon="🌍"
             value={new Set(trips.map((t) => `${t.latitude},${t.longitude}`)).size}
-            label="Locations"
+            label="สถานที่ไป"
             accentColor="from-[#48C9B0] to-[#16A085]"
           />
         </div>
@@ -264,8 +264,8 @@ export default function ProfilePage() {
         <div className="bg-white rounded-3xl p-10 shadow-xl border border-[#BFC9D1]/10 mb-10">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-3xl font-bold text-[#25343F]">My Trips</h2>
-              <p className="text-[#25343F]/50 text-sm mt-2">Explore your travel memories</p>
+              <h2 className="text-3xl font-bold text-[#25343F]">ทริปของฉัน</h2>
+              <p className="text-[#25343F]/50 text-sm mt-2">สำรวจรอยเท้าการเดินทางของคุณ</p>
             </div>
             {trips.length > 0 && (
               <span className="text-lg font-bold text-[#FF9B51] bg-gradient-to-br from-[#FF9B51]/10 to-[#FF9B51]/5 px-6 py-3 rounded-full border border-[#FF9B51]/20">
@@ -277,20 +277,20 @@ export default function ProfilePage() {
           {trips.length === 0 ? (
             <div className="text-center py-20 text-[#BFC9D1]">
               <MapPin size={64} className="mx-auto mb-6 text-[#BFC9D1]" />
-              <p className="font-bold text-2xl text-[#25343F]">No trips yet</p>
-              <p className="text-base mt-3 text-[#25343F]/60">Create your first trip on the map!</p>
+              <p className="font-bold text-2xl text-[#25343F]">ยังไม่มีทริป</p>
+              <p className="text-base mt-3 text-[#25343F]/60">เริ่มสร้างทริปแรกของคุณบนแผนที่เลย!</p>
               <Link
                 href="/home"
                 className="inline-flex items-center mt-8 px-8 py-4 bg-gradient-to-r from-[#FF9B51] to-[#e8893f] hover:from-[#e8893f] hover:to-[#d67a32] text-white rounded-2xl text-base font-bold hover:shadow-lg transition-all active:scale-95 hover:-translate-y-1"
               >
-                Explore Map →
+                ไปที่แผนที่เลย →
               </Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {trips.map((trip) => {
                 const photo = trip.photos?.find(Boolean);
-                const tripDate = new Date(trip.created_at).toLocaleDateString('en-US', {
+                const tripDate = new Date(trip.created_at).toLocaleDateString('th-TH', {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric',
@@ -337,19 +337,19 @@ export default function ProfilePage() {
         <div className="bg-gradient-to-br from-white to-[#F8FAFB] rounded-3xl p-10 shadow-xl border border-[#BFC9D1]/10">
           <h3 className="text-sm font-bold text-[#25343F]/70 uppercase tracking-widest mb-8 flex items-center gap-3">
             <Lock size={20} className="text-[#25343F]/60" />
-            <span>Account Information</span>
+            <span>ข้อมูลบัญชี</span>
           </h3>
           <div className="space-y-6">
             <div className="flex justify-between items-center pb-6 border-b border-[#BFC9D1]/15">
-              <span className="text-[#25343F]/70 font-semibold">User ID</span>
+              <span className="text-[#25343F]/70 font-semibold">รหัสผู้ใช้</span>
               <span className="text-[#25343F] font-mono text-sm bg-[#EAEFEF] px-4 py-2 rounded-xl border border-[#BFC9D1]/20 cursor-default">{profile.id.slice(0, 8)}...</span>
             </div>
             <div className="flex justify-between items-center pb-6 border-b border-[#BFC9D1]/15">
-              <span className="text-[#25343F]/70 font-semibold">Member Since</span>
+              <span className="text-[#25343F]/70 font-semibold">เป็นสมาชิกตั้งแต่</span>
               <span className="text-[#25343F]">{joinDate}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-[#25343F]/70 font-semibold">Email</span>
+              <span className="text-[#25343F]/70 font-semibold">อีเมล</span>
               <span className="text-[#25343F]">{profile.email}</span>
             </div>
           </div>

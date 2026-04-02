@@ -92,7 +92,7 @@ export default function TripDetailPage() {
           loadJoinRequests(params.id as string);
         }
       } catch (err: any) {
-        setError(err.message || 'Failed to load trip');
+        setError(err.message || 'โหลดข้อมูลทริปไม่สำเร็จ');
       } finally {
         setLoading(false);
       }
@@ -141,7 +141,7 @@ export default function TripDetailPage() {
 
   const handleJoinTrip = async () => {
     if (!user) {
-      addToast('Please login to join', 'error');
+      addToast('กรุณาเข้าสู่ระบบเพื่อเข้าร่วม', 'error');
       return;
     }
     if (!trip) return;
@@ -151,13 +151,13 @@ export default function TripDetailPage() {
       setJoinStatus(result.status === 'joined' ? 'joined' : 'pending');
       if (result.status === 'joined') {
         setIsMember(true);
-        addToast('Joined trip successfully!', 'success');
+        addToast('เข้าร่วมทริปสำเร็จ!', 'success');
         loadMembers(trip.id);
       } else {
-        addToast('Join request sent! Waiting for host approval.', 'success');
+        addToast('ส่งคำขอเข้าร่วมแล้ว! กรุณารอเจ้าของทริปอนุมัติ', 'success');
       }
     } catch (err: any) {
-      addToast(err.message || 'Failed to join trip', 'error');
+      addToast(err.message || 'เข้าร่วมทริปไม่สำเร็จ', 'error');
     } finally {
       setIsJoining(false);
     }
@@ -167,24 +167,24 @@ export default function TripDetailPage() {
     if (!trip) return;
     try {
       await respondJoinRequest(trip.id, requestId, status);
-      addToast(`Request ${status}`, 'success');
+      addToast(`คำขอถูก${status === 'approved' ? 'อนุมัติ' : 'ปฏิเสธ'}`, 'success');
       loadJoinRequests(trip.id);
       loadMembers(trip.id);
     } catch (err: any) {
-      addToast(err.message || 'Failed to respond', 'error');
+      addToast(err.message || 'ดำเนินการไม่สำเร็จ', 'error');
     }
   };
 
   const handleEndTrip = async () => {
     if (!trip) return;
-    if (!window.confirm('Are you sure you want to mark this trip as completed?')) return;
+    if (!window.confirm('คุณแน่ใจหรือไม่ว่าต้องการทำเครื่องหมายว่าทริปนี้เสร็จสิ้นแล้ว?')) return;
     setIsEnding(true);
     try {
       await updateTripStatus(trip.id, 'completed');
       setTrip(prev => prev ? { ...prev, status: 'completed', ended_at: new Date().toISOString() } : prev);
-      addToast('Trip marked as completed!', 'success');
+      addToast('ทำเครื่องหมายว่าทริปเสร็จสิ้นแล้ว!', 'success');
     } catch (err: any) {
-      addToast(err.message || 'Failed to complete trip', 'error');
+      addToast(err.message || 'ไม่สามารถจบทริปได้', 'error');
     } finally {
       setIsEnding(false);
     }
@@ -192,14 +192,14 @@ export default function TripDetailPage() {
 
   const handleStartTrip = async () => {
     if (!trip) return;
-    if (!window.confirm('Start this trip now?')) return;
+    if (!window.confirm('เริ่มทริปตอนนี้เลยหรือไม่?')) return;
     setIsEnding(true);
     try {
       await updateTripStatus(trip.id, 'in_progress');
       setTrip(prev => prev ? { ...prev, status: 'in_progress' } : prev);
-      addToast('Trip started!', 'success');
+      addToast('เริ่มทริปแล้ว!', 'success');
     } catch (err: any) {
-      addToast(err.message || 'Failed to start trip', 'error');
+      addToast(err.message || 'ไม่สามารถเริ่มทริปได้', 'error');
     } finally {
       setIsEnding(false);
     }
@@ -208,13 +208,13 @@ export default function TripDetailPage() {
   const handleLeaveTrip = async () => {
     if (!trip) return;
     const msg = isHost 
-      ? 'Are you sure you want to leave? As the host, this will CANCEL the trip for everyone.' 
-      : 'Are you sure you want to leave this trip?';
+      ? 'คุณแน่ใจหรือไม่ว่าต้องการออกจากทริป? ในฐานะเจ้าของทริป การกระทำนี้จะยกเลิกทริปสำหรับทุกคน' 
+      : 'คุณแน่ใจหรือไม่ว่าต้องการออกจากทริปนี้?';
     if (!window.confirm(msg)) return;
     
     try {
       await leaveTrip(trip.id);
-      addToast('Left trip successfully', 'success');
+      addToast('ออกจากทริปสำเร็จ', 'success');
       if (isHost) {
         router.push('/home');
       } else {
@@ -223,7 +223,7 @@ export default function TripDetailPage() {
         loadMembers(trip.id);
       }
     } catch (err: any) {
-      addToast(err.message || 'Failed to leave trip', 'error');
+      addToast(err.message || 'ออกจากทริปไม่สำเร็จ', 'error');
     }
   };
 
@@ -240,13 +240,13 @@ export default function TripDetailPage() {
       <div className="flex-1 flex items-center justify-center bg-[#EAEFEF] pt-22">
         <div className="text-center">
           <MapPin size={48} className="mx-auto mb-4 text-[#BFC9D1]" />
-          <h2 className="text-xl font-bold text-[#25343F] mb-2">Trip Not Found</h2>
-          <p className="text-[#25343F]/60 mb-6">{error || 'This trip does not exist.'}</p>
+          <h2 className="text-xl font-bold text-[#25343F] mb-2">ไม่พบทริป</h2>
+          <p className="text-[#25343F]/60 mb-6">{error || 'ทริปนี้ไม่มีอยู่จริง'}</p>
           <Link
             href="/home"
             className="inline-flex items-center gap-2 px-6 py-3 bg-[#FF9B51] text-white rounded-xl font-semibold hover:bg-[#e8893f] transition-all shadow-lg"
           >
-            <ArrowLeft size={16} /> Back to Map
+            <ArrowLeft size={16} /> กลับไปที่แผนที่
           </Link>
         </div>
       </div>
@@ -254,23 +254,23 @@ export default function TripDetailPage() {
   }
 
   const handleDeleteTrip = async () => {
-    if (!window.confirm('Are you sure you want to delete this trip? This action cannot be undone.')) {
+    if (!window.confirm('คุณแน่ใจหรือไม่ว่าต้องการลบทริปนี้? การกระทำนี้ไม่สามารถย้อนกลับได้')) {
       return;
     }
 
     const token = getToken();
     if (!token) {
-      addToast('You must be logged in to delete a trip', 'error');
+      addToast('คุณต้องเข้าสู่ระบบเพื่อลบทริป', 'error');
       return;
     }
 
     setIsDeleting(true);
     try {
       await deleteTrip(trip.id, token);
-      addToast('Trip deleted successfully', 'success');
+      addToast('ลบทริปสำเร็จ', 'success');
       router.push('/home');
     } catch (err: any) {
-      addToast(err.message || 'Failed to delete trip', 'error');
+      addToast(err.message || 'ลบทริปไม่สำเร็จ', 'error');
       setIsDeleting(false);
     }
   };
@@ -287,7 +287,7 @@ export default function TripDetailPage() {
           href="/home"
           className="inline-flex items-center gap-2 text-[#25343F]/70 hover:text-[#FF9B51] transition-colors mb-6 font-medium"
         >
-          <ArrowLeft size={16} /> Back to Map
+          <ArrowLeft size={16} /> กลับไปที่แผนที่
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -300,20 +300,20 @@ export default function TripDetailPage() {
                   <div className="flex items-center gap-2 mb-2">
                     <h1 className="text-2xl font-bold text-[#25343F]">{trip.title}</h1>
                     {trip.status === 'completed' && (
-                      <span className="px-2.5 py-0.5 bg-green-100 text-green-600 text-xs font-bold rounded-full">Completed</span>
+                      <span className="px-2.5 py-0.5 bg-green-100 text-green-600 text-xs font-bold rounded-full">เสร็จสิ้นแล้ว</span>
                     )}
                     {trip.status === 'cancelled' && (
-                      <span className="px-2.5 py-0.5 bg-red-100 text-red-600 text-xs font-bold rounded-full">Cancelled</span>
+                      <span className="px-2.5 py-0.5 bg-red-100 text-red-600 text-xs font-bold rounded-full">ยกเลิกแล้ว</span>
                     )}
                     {trip.status === 'in_progress' && (
-                      <span className="px-2.5 py-0.5 bg-blue-100 text-blue-600 text-xs font-bold rounded-full animate-pulse">In Progress</span>
+                      <span className="px-2.5 py-0.5 bg-blue-100 text-blue-600 text-xs font-bold rounded-full animate-pulse">กำลังเดินทาง</span>
                     )}
                     {trip.status === 'full' && (
-                      <span className="px-2.5 py-0.5 bg-amber-100 text-amber-600 text-xs font-bold rounded-full">Full</span>
+                      <span className="px-2.5 py-0.5 bg-amber-100 text-amber-600 text-xs font-bold rounded-full">เต็มแล้ว</span>
                     )}
                     {trip.privacy === 'private' && (
                       <span className="px-2.5 py-0.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-full flex items-center gap-1">
-                        <Lock size={10} /> Private
+                        <Lock size={10} /> ส่วนตัว
                       </span>
                     )}
                   </div>
@@ -323,7 +323,7 @@ export default function TripDetailPage() {
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
-                      <Calendar size={14} /> {new Date(trip.created_at).toLocaleDateString('en-US', {
+                      <Calendar size={14} /> {new Date(trip.created_at).toLocaleDateString('th-TH', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
@@ -333,7 +333,7 @@ export default function TripDetailPage() {
                       <>
                         <span>•</span>
                         <span className="flex items-center gap-1 bg-[#FF9B51]/10 text-[#FF9B51] px-2 py-0.5 rounded-md text-xs font-semibold">
-                          <Users size={12} /> Ladies Only
+                          <Users size={12} /> เฉพาะผู้หญิง
                         </span>
                       </>
                     )}
@@ -344,7 +344,7 @@ export default function TripDetailPage() {
                   <button
                     onClick={() => setReportTripId(trip.id)}
                     className="flex items-center justify-center p-2 text-red-500 border border-red-100 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
-                    title="Report Trip"
+                    title="รายงานทริป"
                   >
                     <ShieldAlert size={18} />
                   </button>
@@ -355,7 +355,7 @@ export default function TripDetailPage() {
                       disabled={isEnding}
                       className="flex items-center gap-2 px-4 py-2 bg-[#FF9B51] text-white rounded-lg hover:bg-[#e8893f] transition-colors text-sm font-medium shadow-sm disabled:opacity-50"
                     >
-                      <CheckCircle size={14} /> {isEnding ? 'Starting...' : 'Start Trip'}
+                      <CheckCircle size={14} /> {isEnding ? 'กำลังเริ่ม...' : 'เริ่มทริป'}
                     </button>
                   )}
 
@@ -365,7 +365,7 @@ export default function TripDetailPage() {
                       disabled={isEnding}
                       className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium shadow-sm disabled:opacity-50"
                     >
-                      <Flag size={14} /> {isEnding ? 'Ending...' : 'End Trip'}
+                      <Flag size={14} /> {isEnding ? 'กำลังจบ...' : 'จบทริป'}
                     </button>
                   )}
 
@@ -374,7 +374,7 @@ export default function TripDetailPage() {
                       onClick={handleLeaveTrip}
                       className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium border border-red-100"
                     >
-                      <LogOut size={14} /> Cancel Trip
+                      <LogOut size={14} /> ยกเลิกทริป
                     </button>
                   )}
                 </div>
@@ -382,7 +382,7 @@ export default function TripDetailPage() {
 
               {trip.description && (
                 <div className="mt-4 pt-4 border-t border-[#BFC9D1]/20">
-                  <h3 className="text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-2">Travel Story</h3>
+                  <h3 className="text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-2">บันทึกการเดินทาง</h3>
                   <p className="text-[#25343F]/80 leading-relaxed whitespace-pre-wrap">{trip.description}</p>
                 </div>
               )}
@@ -393,7 +393,7 @@ export default function TripDetailPage() {
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#BFC9D1]/20">
                 <h3 className="text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-4 flex items-center gap-2">
                   <UserPlus size={16} className="text-[#FF9B51]" />
-                  Pending Join Requests ({joinRequests.length})
+                  คำขอเข้าร่วมที่รอการอนุมัติ ({joinRequests.length})
                 </h3>
                 <div className="space-y-3">
                   {joinRequests.map((req) => (
@@ -434,7 +434,7 @@ export default function TripDetailPage() {
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#BFC9D1]/20">
                 <h3 className="text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-4 flex items-center gap-2">
                   <Users size={16} className="text-[#FF9B51]" />
-                  Trip Members ({members.length})
+                  สมาชิกในทริป ({members.length})
                 </h3>
                 <div className="flex flex-wrap gap-3">
                   {members.map((m) => (
@@ -452,7 +452,7 @@ export default function TripDetailPage() {
             {/* Photo Gallery */}
             {photos.length > 0 && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#BFC9D1]/20">
-                <h3 className="text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-4">Photos</h3>
+                <h3 className="text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-4">รูปภาพ</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {photos.map((photo) => (
                     <button
@@ -475,7 +475,7 @@ export default function TripDetailPage() {
             {tripRatings.length > 0 && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#BFC9D1]/20">
                 <h3 className="text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-4">
-                  All Ratings ({tripRatings.length})
+                  คะแนนทั้งหมด ({tripRatings.length})
                 </h3>
                 <TripRatingsList ratings={tripRatings} />
               </div>
@@ -483,7 +483,7 @@ export default function TripDetailPage() {
 
             {/* Map */}
             <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#BFC9D1]/20">
-              <h3 className="text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider px-6 pt-6 mb-4">Location</h3>
+              <h3 className="text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider px-6 pt-6 mb-4">สถานที่</h3>
               <div className="h-[300px]">
                 <MapComponent
                   markers={[{ lat: trip.latitude, lon: trip.longitude, label: trip.title, color: '#FF9B51' }]}
@@ -506,13 +506,13 @@ export default function TripDetailPage() {
                   className="w-full py-3 px-4 bg-[#FF9B51] hover:bg-[#e8893f] text-white rounded-xl font-semibold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isJoining ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}
-                  {trip.privacy === 'private' ? 'Request to Join' : 'Join Trip'}
+                  {trip.privacy === 'private' ? 'ขอเข้าร่วมทริป' : 'เข้าร่วมทริป'}
                 </button>
               )}
 
               {joinStatus === 'pending' && (
                 <div className="w-full py-3 px-4 bg-amber-50 text-amber-700 rounded-xl font-semibold text-center flex items-center justify-center gap-2 border border-amber-200">
-                  <Clock size={16} /> Join request pending...
+                  <Clock size={16} /> กำลังรอการอนุมัติ...
                 </div>
               )}
 
@@ -521,7 +521,7 @@ export default function TripDetailPage() {
                   onClick={handleLeaveTrip}
                   className="w-full py-3 px-4 bg-white text-red-500 border border-red-200 hover:bg-red-50 rounded-xl font-semibold transition-all shadow-sm flex items-center justify-center gap-2 mb-4"
                 >
-                  <LogOut size={16} /> Leave Trip
+                  <LogOut size={16} /> ออกจากทริป
                 </button>
               )}
 
@@ -533,9 +533,9 @@ export default function TripDetailPage() {
                   <div className="w-16 h-16 bg-[#FF9B51]/10 text-[#FF9B51] rounded-full flex items-center justify-center mx-auto mb-4">
                     <Users size={28} />
                   </div>
-                  <h3 className="font-bold text-[#25343F] text-lg mb-2">Trip Discussion</h3>
+                  <h3 className="font-bold text-[#25343F] text-lg mb-2">พูดคุยเกี่ยวกับทริป</h3>
                   <p className="text-sm text-[#25343F]/60 mb-6 leading-relaxed">
-                    Join this trip to participate in the real-time discussion with other travelers.
+                    เข้าร่วมทริปนี้เพื่อพูดคุยกับเพื่อนร่วมทางคนอื่นๆ แบบเรียลไทม์
                   </p>
                   
                   {user ? (
@@ -545,14 +545,14 @@ export default function TripDetailPage() {
                         className="w-full py-3 px-4 bg-[#FF9B51] hover:bg-[#e8893f] text-white rounded-xl font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
                       >
                         {isJoining ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}
-                        {trip.privacy === 'private' ? 'Request to Join' : 'Join Trip'}
+                        {trip.privacy === 'private' ? 'ขอเข้าร่วมทริป' : 'เข้าร่วมทริป'}
                       </button>
                   ) : (
                     <button
-                      onClick={() => addToast('Please login to join', 'error')}
+                      onClick={() => addToast('กรุณาเข้าสู่ระบบเพื่อเข้าร่วม', 'error')}
                       className="w-full py-3 px-4 bg-[#FF9B51] hover:bg-[#e8893f] text-white rounded-xl font-semibold transition-all"
                     >
-                      Join Trip
+                      เข้าร่วมทริป
                     </button>
                   )}
                 </div>
@@ -561,7 +561,7 @@ export default function TripDetailPage() {
               {/* Rating Section */}
               {trip && (
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#BFC9D1]/20">
-                  <h3 className="text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-4">Trip Rating</h3>
+                  <h3 className="text-sm font-semibold text-[#25343F]/40 uppercase tracking-wider mb-4">คะแนนของทริป</h3>
                   
                   <div className="mb-6">
                     {tripRating && tripRating.total_ratings > 0 ? (
@@ -572,11 +572,11 @@ export default function TripDetailPage() {
                           size="lg"
                         />
                         <p className="text-xs text-[#25343F]/50">
-                          Based on {tripRating.total_ratings} rating{tripRating.total_ratings !== 1 ? 's' : ''}
+                          จาก {tripRating.total_ratings} คะแนน
                         </p>
                       </div>
                     ) : (
-                      <p className="text-sm text-[#25343F]/60">No ratings yet</p>
+                      <p className="text-sm text-[#25343F]/60">ยังไม่มีคะแนน</p>
                     )}
                   </div>
 
@@ -586,34 +586,34 @@ export default function TripDetailPage() {
                       onClick={() => setIsRateModalOpen(true)}
                       className="w-full py-2.5 px-4 bg-[#FF9B51] hover:bg-[#e8893f] text-white rounded-lg font-semibold transition-all shadow-md text-sm flex items-center justify-center gap-2"
                     >
-                      <Star size={14} /> Rate This Trip
+                      <Star size={14} /> ให้คะแนนทริปนี้
                     </button>
                   )}
 
                   {user && !isHost && trip.status !== 'completed' && (
                     <p className="text-xs text-[#25343F]/50 text-center py-2">
-                      Rating available after the trip ends
+                      สามารถส่งคะแนนได้หลังจากทริปเสร็จสิ้นแล้ว
                     </p>
                   )}
 
                   {user && !isHost && trip.status === 'completed' && !isMember && (
                     <p className="text-xs text-[#25343F]/50 text-center py-2">
-                      Only trip members can rate
+                      เฉพาะสมาชิกในทริปเท่านั้นที่สามารถให้คะแนนได้
                     </p>
                   )}
 
                   {isHost && (
                     <p className="text-xs text-[#25343F]/50 text-center py-2">
-                      You can&apos;t rate your own trip
+                      คุณไม่สามารถให้คะแนนทริปของตัวเองได้
                     </p>
                   )}
 
                   {!user && (
                     <button
-                      onClick={() => addToast('Please login to rate', 'error')}
+                      onClick={() => addToast('กรุณาเข้าสู่ระบบเพื่อให้คะแนน', 'error')}
                       className="w-full py-2.5 px-4 bg-[#EAEFEF] text-[#25343F] rounded-lg font-semibold transition-all text-sm opacity-50 cursor-not-allowed"
                     >
-                      <Star size={14} className="inline mr-1" /> Rate This Trip
+                      <Star size={14} className="inline mr-1" /> ให้คะแนนทริปนี้
                     </button>
                   )}
 
@@ -621,7 +621,7 @@ export default function TripDetailPage() {
                   {tripRatings.length > 0 && (
                     <div className="mt-6 pt-6 border-t border-[#BFC9D1]/20">
                       <p className="text-xs font-semibold text-[#25343F]/40 uppercase tracking-wider mb-3">
-                        Recent Ratings
+                        คะแนนล่าสุด
                       </p>
                       <div className="space-y-3 max-h-[300px] overflow-y-auto">
                         {tripRatings.slice(0, 5).map((rating) => (
@@ -687,7 +687,7 @@ export default function TripDetailPage() {
           onSuccess={() => {
             loadRatings(trip.id);
             setIsRateModalOpen(false);
-            addToast('Rating submitted successfully!', 'success');
+            addToast('ส่งคะแนนเรียบร้อยแล้ว!', 'success');
           }}
         />
       )}

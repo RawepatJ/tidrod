@@ -102,7 +102,7 @@ export default function ProfileEditModal({
       onSuccess();
       onClose();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update profile';
+      const errorMessage = err instanceof Error ? err.message : 'อัปเดตโปรไฟล์ไม่สำเร็จ';
       console.error('Profile update error:', err);
       setError(errorMessage);
     } finally {
@@ -125,7 +125,7 @@ export default function ProfileEditModal({
         <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-[#BFC9D1]/20">
           {/* Header */}
           <div className="sticky top-0 bg-white border-b border-[#BFC9D1]/20 px-6 py-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-[#25343F]">Edit Profile</h2>
+            <h2 className="text-xl font-bold text-[#25343F]">แก้ไขโปรไฟล์</h2>
             <button
               onClick={onClose}
               className="text-[#25343F]/50 hover:text-[#25343F] text-2xl leading-none"
@@ -167,20 +167,20 @@ export default function ProfileEditModal({
                 onClick={() => fileInputRef.current?.click()}
                 className="px-4 py-2 bg-[#EAEFEF] hover:bg-[#BFC9D1]/30 text-[#25343F] rounded-lg text-sm font-semibold transition-colors"
               >
-                Change Photo
+                เปลี่ยนรูปโปรไฟล์
               </button>
             </div>
 
             {/* Username */}
             <div>
               <label className="block text-sm font-semibold text-[#25343F] mb-1">
-                Username
+                ชื่อผู้ใช้
               </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Your username"
+                placeholder="ชื่อผู้ใช้ของคุณ"
                 className="w-full px-4 py-2.5 border border-[#BFC9D1]/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF9B51]/50 focus:border-[#FF9B51] text-[#25343F]"
                 required
               />
@@ -189,7 +189,7 @@ export default function ProfileEditModal({
             {/* Email (Read-only) */}
             <div>
               <label className="block text-sm font-semibold text-[#25343F] mb-1">
-                Email
+                อีเมล
               </label>
               <input
                 type="email"
@@ -197,18 +197,18 @@ export default function ProfileEditModal({
                 disabled
                 className="w-full px-4 py-2.5 border border-[#BFC9D1]/30 rounded-lg bg-[#EAEFEF] text-[#25343F]/50 cursor-not-allowed"
               />
-              <p className="text-xs text-[#25343F]/40 mt-1">Email cannot be changed</p>
+              <p className="text-xs text-[#25343F]/40 mt-1">ไม่สามารถเปลี่ยนอีเมลได้</p>
             </div>
 
             {/* Bio */}
             <div>
               <label className="block text-sm font-semibold text-[#25343F] mb-1">
-                Bio
+                ประวัติส่วนตัว
               </label>
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Tell something about yourself..."
+                placeholder="บอกเล่าเรื่องราวของคุณ..."
                 maxLength={150}
                 rows={3}
                 className="w-full px-4 py-2.5 border border-[#BFC9D1]/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF9B51]/50 focus:border-[#FF9B51] text-[#25343F] resize-none"
@@ -225,14 +225,14 @@ export default function ProfileEditModal({
                 onClick={onClose}
                 className="flex-1 px-4 py-2.5 bg-[#EAEFEF] hover:bg-[#BFC9D1]/30 text-[#25343F] rounded-lg font-semibold transition-colors"
               >
-                Cancel
+                ยกเลิก
               </button>
               <button
                 type="submit"
                 disabled={loading || !username.trim()}
                 className="flex-1 px-4 py-2.5 bg-[#FF9B51] hover:bg-[#e8893f] disabled:opacity-50 text-white rounded-lg font-semibold transition-colors shadow-md"
               >
-                {loading ? 'Saving...' : 'Save Changes'}
+                {loading ? 'กำลังบันทึก...' : 'บันทึกการเปลี่ยนแปลง'}
               </button>
             </div>
           </form>

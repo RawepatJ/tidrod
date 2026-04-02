@@ -23,44 +23,44 @@ export default function AdminTripsPage() {
       setTrips(data.trips);
     } catch (err) {
       console.error(err);
-      addToast("Failed to load trips", "error");
+      addToast("โหลดรายชื่อทริปไม่สำเร็จ", "error");
     } finally {
       setLoading(false);
     }
   }
 
   async function deleteTrip(id: string) {
-    if (!window.confirm("WARNING: This will permanently delete the trip and all associated photos and messages. Continue?")) return;
+    if (!window.confirm("คำเตือน: การกระทำนี้จะลบทริปนี้พร้อมกับรูปภาพและข้อความทั้งหมดอย่างถาวร คุณต้องการดำเนินการต่อหรือไม่?")) return;
 
     try {
       await fetchAuth(`/api/admin/trips/${id}`, { method: "DELETE" });
-      addToast("Trip deleted successfully", "success");
+      addToast("ลบทริปสำเร็จ", "success");
       loadTrips();
     } catch (err) {
-      addToast("Failed to delete trip", "error");
+      addToast("ลบทริปไม่สำเร็จ", "error");
     }
   }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-[#25343F]">Trips Management</h1>
+        <h1 className="text-2xl font-bold text-[#25343F]">จัดการทริป</h1>
         <span className="bg-[#10B981]/10 text-[#10B981] px-4 py-1.5 rounded-full text-sm font-medium">
-          {trips.length} Trips
+          {trips.length} ทริป
         </span>
       </div>
 
       {loading ? (
-        <p className="text-[#BFC9D1]">Loading trips...</p>
+        <p className="text-[#BFC9D1]">กำลังโหลดรายชื่อทริป...</p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-[#BFC9D1]/30">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#F8FAFC] border-b border-[#BFC9D1]/30">
-                <th className="p-4 font-semibold text-sm text-[#25343F]">Title</th>
-                <th className="p-4 font-semibold text-sm text-[#25343F]">Owner</th>
-                <th className="p-4 font-semibold text-sm text-[#25343F]">Created</th>
-                <th className="p-4 font-semibold text-sm text-[#25343F]">Actions</th>
+                <th className="p-4 font-semibold text-sm text-[#25343F]">หัวข้อทริป</th>
+                <th className="p-4 font-semibold text-sm text-[#25343F]">เจ้าของทริป</th>
+                <th className="p-4 font-semibold text-sm text-[#25343F]">สร้างเมื่อ</th>
+                <th className="p-4 font-semibold text-sm text-[#25343F]">จัดการ</th>
               </tr>
             </thead>
             <tbody>
@@ -69,21 +69,21 @@ export default function AdminTripsPage() {
                   <td className="p-4 font-medium text-[#25343F] max-w-[250px] truncate">{trip.title}</td>
                   <td className="p-4 text-sm text-[#25343F]/70">{trip.username}</td>
                   <td className="p-4 text-sm text-[#25343F]/70">
-                    {new Date(trip.created_at).toLocaleString()}
+                    {new Date(trip.created_at).toLocaleString('th-TH')}
                   </td>
                   <td className="p-4 flex gap-2">
                     <Link
                       href={`/trip/${trip.id}`}
                       target="_blank"
                       className="p-2 text-[#25343F]/50 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="View Trip"
+                      title="ดูรายละเอียดทริป"
                     >
                       <ExternalLink size={18} />
                     </Link>
                     <button
                       onClick={() => deleteTrip(trip.id)}
                       className="p-2 text-[#25343F]/50 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Delete Trip"
+                      title="ลบทริป"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -93,7 +93,7 @@ export default function AdminTripsPage() {
             </tbody>
           </table>
           {trips.length === 0 && (
-             <div className="p-8 text-center text-[#BFC9D1]">No trips found.</div>
+             <div className="p-8 text-center text-[#BFC9D1]">ไม่พบรายชื่อทริป</div>
           )}
         </div>
       )}

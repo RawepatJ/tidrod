@@ -23,13 +23,13 @@ export default function ForgotPasswordPage() {
       });
       if (res.ok) {
         setIsSent(true);
-        addToast("Check your email for instructions!", "success");
+        addToast("ตรวจสอบอีเมลของคุณเพื่อดูคำแนะนำ!", "success");
       } else {
         const data = await res.json();
-        addToast(data.error || "Failed to send reset link", "error");
+        addToast(data.error || "ส่งลิงก์รีเซ็ตไม่สำเร็จ", "error");
       }
     } catch (err) {
-      addToast("An error occurred. Please try again.", "error");
+      addToast("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", "error");
     } finally {
       setIsLoading(false);
     }
@@ -39,40 +39,40 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen bg-gradient-to-br from-[#25343F] to-[#1a2a35] flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <Link href="/login" className="inline-flex items-center gap-2 text-[#BFC9D1] hover:text-white mb-8 transition-colors">
-          <ArrowLeft size={16} /> Back to Login
+          <ArrowLeft size={16} /> กลับไปหน้าเข้าสู่ระบบ
         </Link>
         
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
           {isSent ? (
             <div className="text-center space-y-6 animate-in zoom-in-95 duration-300">
                 <CheckCircle size={56} className="mx-auto text-green-400" />
-                <h1 className="text-2xl font-bold text-white">Check Your Email</h1>
+                <h1 className="text-2xl font-bold text-white">ตรวจสอบอีเมลของคุณ</h1>
                 <p className="text-[#BFC9D1] leading-relaxed">
-                    We&apos;ve sent a password reset link to <span className="text-white font-semibold">{email}</span>. Please check your inbox and follow the instructions.
+                    เราได้ส่งลิงก์รีเซ็ตรหัสผ่านไปที่ <span className="text-white font-semibold">{email}</span> แล้ว กรุณาตรวจสอบกล่องจดหมายและปฏิบัติตามคำแนะนำ
                 </p>
                 <div className="pt-4 flex flex-col gap-3">
                     <button 
                          onClick={() => setIsSent(false)}
                          className="text-[#FF9B51] font-bold hover:underline"
                     >
-                        Resend email
+                        ส่งอีเมลอีกครั้ง
                     </button>
                     <Link href="/login" className="text-sm text-[#BFC9D1]/40 hover:text-[#BFC9D1] transition-colors">
-                        Return to sign in
+                        กลับสู่หน้าเข้าสู่ระบบ
                     </Link>
                 </div>
             </div>
           ) : (
             <>
                 <div className="text-center mb-10">
-                    <h1 className="text-2xl font-bold text-white">Forgot Password?</h1>
-                    <p className="text-[#BFC9D1] mt-2">Enter your email to receive a reset link</p>
+                    <h1 className="text-2xl font-bold text-white">ลืมรหัสผ่านใช่ไหม?</h1>
+                    <p className="text-[#BFC9D1] mt-2">กรอกอีเมลของคุณเพื่อรับลิงก์รีเซ็ต</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-[#BFC9D1] mb-2 ml-1">
-                            Email Address
+                            ที่อยู่อีเมล
                         </label>
                         <div className="relative group">
                             <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#BFC9D1]/30 group-focus-within:text-[#FF9B51] transition-colors" />
@@ -93,7 +93,7 @@ export default function ForgotPasswordPage() {
                         disabled={isLoading}
                         className="w-full py-4 bg-[#FF9B51] text-white rounded-xl font-bold hover:bg-[#e8893f] transition-all disabled:opacity-50 shadow-lg shadow-[#FF9B51]/20 flex items-center justify-center gap-2"
                     >
-                        {isLoading ? <Loader2 size={20} className="animate-spin" /> : "Send Reset Link"}
+                        {isLoading ? <Loader2 size={20} className="animate-spin" /> : "ส่งลิงก์รีเซ็ต"}
                     </button>
                 </form>
             </>

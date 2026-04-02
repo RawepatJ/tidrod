@@ -86,9 +86,9 @@ export default function AutocompleteInput({
   const handleSpecialSelect = (type: SpecialOption) => {
     setShowSuggestions(false);
     if (type === 'CURRENT_LOCATION') {
-      onSelect(null, null, "Current Location", 'CURRENT_LOCATION');
+      onSelect(null, null, "ตำแหน่งปัจจุบัน", 'CURRENT_LOCATION');
     } else if (type === 'MAP_SELECT') {
-      onSelect(null, null, "Selecting on Map...", 'MAP_SELECT');
+      onSelect(null, null, "กำลังเลือกบนแผนที่...", 'MAP_SELECT');
     }
   };
 
@@ -106,7 +106,7 @@ export default function AutocompleteInput({
         }}
         onFocus={() => setShowSuggestions(true)}
       />
-      {loading && <div className="absolute right-3 top-9 text-xs text-gray-400">Loading...</div>}
+      {loading && <div className="absolute right-3 top-9 text-xs text-gray-400">กำลังโหลด...</div>}
       
       {showSuggestions && (
         <ul className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg max-h-60 overflow-auto">
@@ -116,7 +116,7 @@ export default function AutocompleteInput({
               className="px-4 py-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer text-sm text-blue-600 dark:text-blue-400 font-medium flex items-center gap-2"
               onClick={() => handleSpecialSelect('CURRENT_LOCATION')}
             >
-              📍 Use Current Location
+              📍 ใช้ตำแหน่งปัจจุบัน
             </li>
           )}
           {enableMapSelect && (
@@ -124,7 +124,7 @@ export default function AutocompleteInput({
               className="px-4 py-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer text-sm text-blue-600 dark:text-blue-400 font-medium flex items-center gap-2 border-b border-gray-100 dark:border-gray-700"
               onClick={() => handleSpecialSelect('MAP_SELECT')}
             >
-              🗺️ Select on Map
+              🗺️ เลือกบนแผนที่
             </li>
           )}
 

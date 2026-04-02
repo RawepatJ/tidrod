@@ -36,7 +36,7 @@ export default function AdminReportsPage() {
       setReports(data.reports);
     } catch (err) {
       console.error(err);
-      addToast("Failed to load reports", "error");
+      addToast("โหลดข้อมูลรายงานไม่สำเร็จ", "error");
     } finally {
       setLoading(false);
     }
@@ -48,60 +48,61 @@ export default function AdminReportsPage() {
       setSelectedReport(report);
       setIsModalOpen(true);
     } catch (err) {
-      addToast("Failed to load report details", "error");
+      addToast("โหลดรายละเอียดรายงานไม่สำเร็จ", "error");
     }
   }
 
   async function updateStatus(id: string, status: string) {
-    if (!window.confirm(`Mark this report as ${status}?`)) return;
+    const statusLabel = status === "resolved" ? "จัดการแล้ว" : "เพิกเฉย";
+    if (!window.confirm(`ทำเครื่องหมายรายงานนี้ว่า ${statusLabel}?`)) return;
 
     try {
       await fetchAuth(`/api/admin/reports/${id}`, {
         method: "PATCH",
         body: JSON.stringify({ status }),
       });
-      addToast(`Report marked as ${status}`, "success");
+      addToast(`เปลี่ยนสถานะรายงานเป็น ${statusLabel} แล้ว`, "success");
       setIsModalOpen(false);
       loadReports();
     } catch (err) {
-      addToast("Failed to update status", "error");
+      addToast("อัปเดตสถานะไม่สำเร็จ", "error");
     }
   }
 
   return (
     <div className="space-y-6 font-main">
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold text-[#25343F]">Moderation Center</h1>
+        <h1 className="text-2xl font-bold text-[#25343F]">ศูนย์จัดการรายงาน</h1>
         <div className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs font-bold uppercase tracking-wider">
-          Reports
+          รายงาน
         </div>
       </div>
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-[#BFC9D1]/30">
           <div className="w-12 h-12 border-4 border-[#FF9B51] border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-[#25343F]/50 font-medium italic">Scanning for reports...</p>
+          <p className="text-[#25343F]/50 font-medium italic">กำลังตรวจสอบรายงาน...</p>
         </div>
       ) : (
         <div className="bg-white rounded-3xl border border-[#BFC9D1]/30 overflow-hidden shadow-sm">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#F8FAFC] border-b border-[#BFC9D1]/30">
-                <th className="p-5 font-bold text-sm text-[#25343F] uppercase tracking-wider">Reporter</th>
-                <th className="p-5 font-bold text-sm text-[#25343F] uppercase tracking-wider">Target</th>
-                <th className="p-5 font-bold text-sm text-[#25343F] uppercase tracking-wider">Reason</th>
-                <th className="p-5 font-bold text-sm text-[#25343F] uppercase tracking-wider">Status</th>
-                <th className="p-5 font-bold text-sm text-[#25343F] uppercase tracking-wider text-right">Actions</th>
+                <th className="p-5 font-bold text-sm text-[#25343F] uppercase tracking-wider">ผู้รายงาน</th>
+                <th className="p-5 font-bold text-sm text-[#25343F] uppercase tracking-wider">เป้าหมาย</th>
+                <th className="p-5 font-bold text-sm text-[#25343F] uppercase tracking-wider">เหตุผล</th>
+                <th className="p-5 font-bold text-sm text-[#25343F] uppercase tracking-wider">สถานะ</th>
+                <th className="p-5 font-bold text-sm text-[#25343F] uppercase tracking-wider text-right">จัดการ</th>
               </tr>
             </thead>
             <tbody>
               {reports.map((report) => (
                 <tr key={report.id} className="border-b border-[#BFC9D1]/10 hover:bg-[#F8FAFC]/50 transition-colors">
-                  <td className="p-5 text-sm font-semibold text-[#25343F]">{report.reporter_username || "System"}</td>
+                  <td className="p-5 text-sm font-semibold text-[#25343F]">{report.reporter_username || "ระบบอัตโนมัติ"}</td>
                   <td className="p-5 text-sm">
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px] font-bold uppercase">
-                        {report.target_type}
+                        {report.target_type === 'USER' ? 'ผู้ใช้' : report.target_type === 'TRIP' ? 'ทริป' : report.target_type === 'MESSAGE' ? 'ข้อความ' : report.target_type}
                       </span>
                       <span className="text-[#25343F]/80 font-medium">
                         {report.reported_username || report.trip_title || "N/A"}
@@ -121,7 +122,7 @@ export default function AdminReportsPage() {
                           : "bg-slate-100 text-slate-500"
                       }`}
                     >
-                      {report.status}
+                      {report.status === 'pending' ? 'รอดำเนินการ' : report.status === 'resolved' ? 'จัดการแล้ว' : report.status === 'ignored' ? 'เพิกเฉย' : report.status}
                     </span>
                   </td>
                   <td className="p-5">
@@ -129,24 +130,24 @@ export default function AdminReportsPage() {
                        <button
                          onClick={() => openDetail(report.id)}
                          className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
-                         title="View Details"
+                         title="ดูรายละเอียด"
                        >
                          <Eye size={20} />
                        </button>
                        {report.status === "pending" && (
                          <>
-                           <button
-                             onClick={() => updateStatus(report.id, "resolved")}
-                             className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
-                             title="Mark Resolved"
-                           >
+                            <button
+                              onClick={() => updateStatus(report.id, "resolved")}
+                              className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+                              title="ทำเครื่องหมายว่าจัดการแล้ว"
+                            >
                              <CheckCircle size={20} />
                            </button>
-                           <button
-                             onClick={() => updateStatus(report.id, "ignored")}
-                             className="p-2 text-slate-400 hover:bg-slate-100 rounded-xl transition-all"
-                             title="Ignore"
-                           >
+                            <button
+                              onClick={() => updateStatus(report.id, "ignored")}
+                              className="p-2 text-slate-400 hover:bg-slate-100 rounded-xl transition-all"
+                              title="เพิกเฉย"
+                            >
                              <XCircle size={20} />
                            </button>
                          </>
@@ -159,11 +160,11 @@ export default function AdminReportsPage() {
           </table>
           {reports.length === 0 && (
              <div className="p-16 text-center">
-                <div className="w-16 h-16 bg-emerald-50 text-emerald-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                   <ShieldAlert size={32} />
-                </div>
-                <p className="text-[#25343F]/40 font-medium">No pending reports. Great job!</p>
-             </div>
+                 <div className="w-16 h-16 bg-emerald-50 text-emerald-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <ShieldAlert size={32} />
+                 </div>
+                 <p className="text-[#25343F]/40 font-medium">ไม่มีรายงานที่ค้างอยู่ เยี่ยมมาก!</p>
+              </div>
           )}
         </div>
       )}
@@ -177,16 +178,16 @@ export default function AdminReportsPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded text-[10px] font-bold uppercase">
-                      Report #{selectedReport.id.slice(0, 8)}
+                      รายงาน #{selectedReport.id.slice(0, 8)}
                     </span>
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                       selectedReport.status === 'pending' ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500'
                     }`}>
-                      {selectedReport.status}
+                      {selectedReport.status === 'pending' ? 'รอดำเนินการ' : selectedReport.status === 'resolved' ? 'จัดการแล้ว' : selectedReport.status === 'ignored' ? 'เพิกเฉย' : selectedReport.status}
                     </span>
                   </div>
                   <h2 className="text-2xl font-black text-[#25343F]">{selectedReport.reason}</h2>
-                  <p className="text-sm text-[#25343F]/50">Reported by <strong>{selectedReport.reporter_username}</strong> on {new Date(selectedReport.created_at).toLocaleDateString()}</p>
+                  <p className="text-sm text-[#25343F]/50">รายงานโดย <strong>{selectedReport.reporter_username}</strong> เมื่อ {new Date(selectedReport.created_at).toLocaleDateString('th-TH')}</p>
                 </div>
                 <button 
                   onClick={() => setIsModalOpen(false)}
@@ -199,13 +200,13 @@ export default function AdminReportsPage() {
               <div className="space-y-6">
                 {/* Description */}
                 <div className="p-5 bg-[#F8FAFC] rounded-2xl border border-[#BFC9D1]/20">
-                  <h4 className="text-[10px] font-bold text-[#25343F]/40 uppercase tracking-widest mb-2">Description</h4>
-                  <p className="text-[#25343F] leading-relaxed break-words">{selectedReport.description || "No additional details provided."}</p>
+                  <h4 className="text-[10px] font-bold text-[#25343F]/40 uppercase tracking-widest mb-2">รายละเอียดเพิ่มเติม</h4>
+                  <p className="text-[#25343F] leading-relaxed break-words">{selectedReport.description || "ไม่มีข้อมูลเพิ่มเติมระบุไว้"}</p>
                 </div>
 
                 {/* Target Content */}
                 <div>
-                   <h4 className="text-[10px] font-bold text-[#25343F]/40 uppercase tracking-widest mb-3 ml-1">Reported {selectedReport.target_type} Content</h4>
+                   <h4 className="text-[10px] font-bold text-[#25343F]/40 uppercase tracking-widest mb-3 ml-1">เนื้อหาของ {selectedReport.target_type === 'USER' ? 'ผู้ใช้' : selectedReport.target_type === 'TRIP' ? 'ทริป' : selectedReport.target_type === 'MESSAGE' ? 'ข้อความ' : selectedReport.target_type} ที่ถูกรายงาน</h4>
                    <div className="p-5 rounded-2xl border-2 border-[#EAEFEF] bg-white">
                       {selectedReport.target_type === 'USER' && selectedReport.targetContent && (
                         <div className="flex items-center gap-4">
@@ -219,7 +220,7 @@ export default function AdminReportsPage() {
                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                                    selectedReport.targetContent.status === 'banned' ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'
                                  }`}>
-                                   STATUS: {selectedReport.targetContent.status || 'active'}
+                                   สถานะ: {selectedReport.targetContent.status === 'active' ? 'ปกติ' : selectedReport.targetContent.status === 'suspended' ? 'ถูกระงับ' : selectedReport.targetContent.status === 'banned' ? 'ถูกแบน' : 'ปกติ'}
                                  </span>
                               </div>
                            </div>
@@ -234,7 +235,7 @@ export default function AdminReportsPage() {
                            </div>
                            <p className="text-sm text-[#25343F]/70 line-clamp-3">{selectedReport.targetContent.description}</p>
                            <div className="mt-3 flex items-center gap-2">
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#EAEFEF] rounded uppercase">TRIP STATUS: {selectedReport.targetContent.status}</span>
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#EAEFEF] rounded uppercase">สถานะทริป: {selectedReport.targetContent.status === 'open' ? 'เปิดรับ' : selectedReport.targetContent.status === 'full' ? 'เต็มแล้ว' : selectedReport.targetContent.status === 'in_progress' ? 'กำลังเดินทาง' : selectedReport.targetContent.status === 'completed' ? 'เสร็จสิ้น' : 'ยกเลิก'}</span>
                            </div>
                         </div>
                       )}
@@ -243,7 +244,7 @@ export default function AdminReportsPage() {
                         <div className="flex gap-3">
                            <MessageSquare size={20} className="text-[#BFC9D1] flex-shrink-0 mt-1" />
                            <div>
-                              <div className="text-[10px] font-bold text-[#BFC9D1] uppercase mb-1">Sent by {selectedReport.targetContent.username}</div>
+                              <div className="text-[10px] font-bold text-[#BFC9D1] uppercase mb-1">ส่งโดย {selectedReport.targetContent.username}</div>
                               <div className="p-3 bg-[#EAEFEF] rounded-xl text-sm italic text-[#25343F]">
                                  "{selectedReport.targetContent.content}"
                               </div>
@@ -253,7 +254,7 @@ export default function AdminReportsPage() {
 
                       {!selectedReport.targetContent && (
                         <div className="text-[#BFC9D1] text-sm italic flex items-center gap-2">
-                           <AlertTriangle size={16} /> Target content has been deleted or is unavailable.
+                           <AlertTriangle size={16} /> เนื้อหาที่ถูกรายงานถูกลบไปแล้วหรือไม่มีข้อมูล
                         </div>
                       )}
                    </div>
@@ -266,13 +267,13 @@ export default function AdminReportsPage() {
                       onClick={() => updateStatus(selectedReport.id, "resolved")}
                       className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
                     >
-                      <CheckCircle size={20} /> Mark as Resolved
+                      <CheckCircle size={20} /> ทำเครื่องหมายว่าจัดการแล้ว
                     </button>
                     <button
                       onClick={() => updateStatus(selectedReport.id, "ignored")}
                       className="flex-1 py-4 bg-[#EAEFEF] hover:bg-[#BFC9D1]/30 text-[#25343F]/60 rounded-2xl font-bold transition-all flex items-center justify-center gap-2"
                     >
-                      <XCircle size={20} /> Ignore Report
+                      <XCircle size={20} /> เพิกเฉยต่อรายงานนี้
                     </button>
                   </div>
                 )}
