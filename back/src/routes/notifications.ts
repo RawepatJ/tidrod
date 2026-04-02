@@ -106,13 +106,14 @@ export async function createNotification(
     title: string,
     message: string,
     relatedTripId?: string,
-    relatedUserId?: string
+    relatedUserId?: string,
+    relatedJoinRequestId?: string
 ): Promise<any> {
     const result = await pool.query(
-        `INSERT INTO notifications (user_id, type, title, message, related_trip_id, related_user_id)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO notifications (user_id, type, title, message, related_trip_id, related_user_id, related_join_request_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING *`,
-        [userId, type, title, message, relatedTripId || null, relatedUserId || null]
+        [userId, type, title, message, relatedTripId || null, relatedUserId || null, relatedJoinRequestId || null]
     );
     return result.rows[0];
 }

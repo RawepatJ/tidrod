@@ -103,6 +103,7 @@ export async function initDatabase(): Promise<void> {
         message TEXT,
         related_trip_id UUID REFERENCES trips(id) ON DELETE CASCADE,
         related_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+        related_join_request_id UUID REFERENCES trip_join_requests(id) ON DELETE SET NULL,
         is_read BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
@@ -132,6 +133,7 @@ export async function initDatabase(): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_trip_ratings_trip ON trip_ratings (trip_id);
       CREATE INDEX IF NOT EXISTS idx_trip_ratings_user ON trip_ratings (user_id);
       CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications (user_id, is_read);
+      ALTER TABLE notifications ADD COLUMN IF NOT EXISTS related_join_request_id UUID REFERENCES trip_join_requests(id) ON DELETE SET NULL;
       CREATE INDEX IF NOT EXISTS idx_join_requests_trip ON trip_join_requests (trip_id, status);
       CREATE INDEX IF NOT EXISTS idx_trip_members_trip ON trip_members (trip_id);
     `);

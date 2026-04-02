@@ -27,6 +27,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
        JOIN users u ON t.user_id = u.id
        WHERE t.longitude >= $1 AND t.longitude <= $3
          AND t.latitude >= $2 AND t.latitude <= $4
+         AND t.status NOT IN ('completed', 'cancelled')
        LIMIT 200`,
             [west, south, east, north]
         );

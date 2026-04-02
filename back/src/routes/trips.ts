@@ -375,10 +375,11 @@ router.post('/:id/join', authMiddleware, async (req: AuthRequest, res: Response)
             }
 
             // Create join request
-            await pool.query(
-                'INSERT INTO trip_join_requests (trip_id, user_id) VALUES ($1, $2)',
+            const reqInsert = await pool.query(
+                'INSERT INTO trip_join_requests (trip_id, user_id) VALUES ($1, $2) RETURNING id',
                 [id, userId]
             );
+            const requestId = reqInsert.rows[0].id;
 
             // Notify the trip host
             await createNotification(
@@ -387,7 +388,8 @@ router.post('/:id/join', authMiddleware, async (req: AuthRequest, res: Response)
                 'Join Request',
                 `${req.user!.username} wants to join your trip "${trip.title}"`,
                 id as string,
-                userId
+                userId,
+                requestId
             );
 
             res.json({ message: 'Join request sent', status: 'pending' });

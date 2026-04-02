@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Bell, Check, CheckCheck, UserPlus, XCircle, Flag, MapPin } from 'lucide-react';
-import { getNotifications, getUnreadNotificationCount, markNotificationRead, markAllNotificationsRead } from '@/lib/api';
+import { Bell, Check, CheckCheck, UserPlus, XCircle, Flag, MapPin, Eye, X } from 'lucide-react';
+import { getNotifications, getUnreadNotificationCount, markNotificationRead, markAllNotificationsRead, respondJoinRequest } from '@/lib/api';
 import { useSession } from './SessionProvider';
 import Link from 'next/link';
+import { useToast } from './Toast';
 
 const ICON_MAP: Record<string, React.ReactNode> = {
     join_request: <UserPlus size={16} className="text-blue-500" />,
@@ -16,11 +17,31 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 
 export default function NotificationBell() {
     const { user } = useSession();
+    const { addToast } = useToast();
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState<any[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [actionLoading, setActionLoading] = useState<string | null>(null);
     const panelRef = useRef<HTMLDivElement>(null);
+
+    const handleJoinResponse = async (e: React.MouseEvent, n: any, status: 'approved' | 'denied') => {
+        e.stopPropagation();
+        if (!n.related_trip_id || !n.related_join_request_id) return;
+        
+        setActionLoading(n.id);
+        try {
+            await respondJoinRequest(n.related_trip_id, n.related_join_request_id, status);
+            addToast(`Successfully ${status} join request`, 'success');
+            if (!n.is_read) handleMarkRead(n.id);
+            // Optionally remove from list or update UI
+            setNotifications(prev => prev.filter(item => item.id !== n.id));
+        } catch (err: any) {
+            addToast(err.message || 'Failed to respond to request', 'error');
+        } finally {
+            setActionLoading(null);
+        }
+    };
 
     const fetchUnreadCount = useCallback(async () => {
         if (!user) return;
@@ -169,6 +190,45 @@ export default function NotificationBell() {
                                         <p className="text-xs text-[#25343F]/50 mt-0.5 line-clamp-2">
                                             {n.message}
                                         </p>
+
+                                        {/* Quick Actions */}
+                                        <div className="mt-2 flex items-center gap-2">
+                                            {n.type === 'join_request' && n.related_join_request_id && (
+                                                <>
+                                                    <button
+                                                        onClick={(e) => handleJoinResponse(e, n, 'approved')}
+                                                        disabled={!!actionLoading}
+                                                        className="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-[10px] font-bold transition-colors flex items-center gap-1"
+                                                    >
+                                                        <Check size={10} />
+                                                        Accept
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => handleJoinResponse(e, n, 'denied')}
+                                                        disabled={!!actionLoading}
+                                                        className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-[10px] font-bold transition-colors flex items-center gap-1"
+                                                    >
+                                                        <X size={10} />
+                                                        Decline
+                                                    </button>
+                                                </>
+                                            )}
+                                            {n.related_trip_id && (
+                                                <Link
+                                                    href={`/trips/${n.related_trip_id}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setIsOpen(false);
+                                                        if (!n.is_read) handleMarkRead(n.id);
+                                                    }}
+                                                    className="px-2 py-1 bg-[#25343F]/5 hover:bg-[#25343F]/10 text-[#25343F] rounded text-[10px] font-bold transition-colors flex items-center gap-1"
+                                                >
+                                                    <Eye size={10} />
+                                                    View Trip
+                                                </Link>
+                                            )}
+                                        </div>
+
                                         <p className="text-[10px] text-[#BFC9D1] mt-1">
                                             {getTimeAgo(n.created_at)}
                                         </p>
