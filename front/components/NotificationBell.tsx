@@ -28,7 +28,7 @@ export default function NotificationBell() {
     const handleJoinResponse = async (e: React.MouseEvent, n: any, status: 'approved' | 'denied') => {
         e.stopPropagation();
         if (!n.related_trip_id || !n.related_join_request_id) return;
-        
+
         setActionLoading(n.id);
         try {
             await respondJoinRequest(n.related_trip_id, n.related_join_request_id, status);
@@ -176,9 +176,8 @@ export default function NotificationBell() {
                                     onClick={() => {
                                         if (!n.is_read) handleMarkRead(n.id);
                                     }}
-                                    className={`flex items-start gap-3 px-4 py-3 border-b border-[#BFC9D1]/10 cursor-pointer hover:bg-[#F8FAFC] transition-colors ${
-                                        !n.is_read ? 'bg-[#FF9B51]/5' : ''
-                                    }`}
+                                    className={`flex items-start gap-3 px-4 py-3 border-b border-[#BFC9D1]/10 cursor-pointer hover:bg-[#F8FAFC] transition-colors ${!n.is_read ? 'bg-[#FF9B51]/5' : ''
+                                        }`}
                                 >
                                     <div className="flex-shrink-0 mt-0.5 w-8 h-8 rounded-full bg-[#EAEFEF] flex items-center justify-center">
                                         {ICON_MAP[n.type] || ICON_MAP.default}
@@ -215,7 +214,7 @@ export default function NotificationBell() {
                                             )}
                                             {n.related_trip_id && (
                                                 <Link
-                                                    href={`/trips/${n.related_trip_id}`}
+                                                    href={`/trip/${n.related_trip_id}`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         setIsOpen(false);
