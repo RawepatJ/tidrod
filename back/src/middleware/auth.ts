@@ -10,7 +10,6 @@ export interface AuthRequest extends Request {
         role: string;
         gender: string;
         status: string;
-        email_verified: boolean;
     };
 }
 
@@ -29,12 +28,11 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
             username: string;
             role: string;
             gender: string;
-            email_verified: boolean;
         };
 
         // Check if user is banned or suspended
         const userCheck = await pool.query(
-            'SELECT COALESCE(status, \'active\') as status, suspended_until, email_verified FROM users WHERE id = $1',
+            'SELECT COALESCE(status, \'active\') as status, suspended_until FROM users WHERE id = $1',
             [decoded.id]
         );
 
@@ -45,7 +43,6 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
 
         let userStatus = userCheck.rows[0].status;
         const suspendedUntil = userCheck.rows[0].suspended_until;
-        const dbEmailVerified = !!userCheck.rows[0].email_verified;
 
         // Auto-reactivate if suspension expired
         if (userStatus === 'suspended' && suspendedUntil && new Date(suspendedUntil) < new Date()) {
@@ -60,23 +57,9 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
 
         // We allow suspended users to proceed to the next middleware/route,
         // but we include their status in the request so specific action routes can block them.
-        req.user = { ...decoded, status: userStatus, email_verified: dbEmailVerified };
+        req.user = { ...decoded, status: userStatus };
         next();
     } catch {
         res.status(401).json({ error: 'Invalid or expired token' });
     }
-}
-
-export function verifiedMiddleware(req: AuthRequest, res: Response, next: NextFunction): void {
-    if (!req.user) {
-        res.status(401).json({ error: 'Authentication required' });
-        return;
-    }
-
-    if (!req.user.email_verified) {
-        res.status(403).json({ error: 'Please verify your email to access this feature.' });
-        return;
-    }
-
-    next();
 }

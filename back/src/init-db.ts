@@ -15,9 +15,6 @@ export async function initDatabase(): Promise<void> {
         bio TEXT DEFAULT '',
         avatar_url TEXT,
         suspended_until TIMESTAMPTZ,
-        email_verified BOOLEAN DEFAULT FALSE,
-        verification_token TEXT,
-        reset_token TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()
       );
 
@@ -27,9 +24,6 @@ export async function initDatabase(): Promise<void> {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT '';
       ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS suspended_until TIMESTAMPTZ;
-      ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE;
-      ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token TEXT;
-      ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token TEXT;
 
       CREATE TABLE IF NOT EXISTS trips (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

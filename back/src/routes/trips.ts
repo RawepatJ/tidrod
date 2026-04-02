@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import multer from 'multer';
 import pool from '../db';
-import { authMiddleware, AuthRequest, verifiedMiddleware } from '../middleware/auth';
+import { authMiddleware, AuthRequest } from '../middleware/auth';
 import { uploadToSupabase } from '../storage';
 import { createNotification } from './notifications';
 
@@ -123,7 +123,7 @@ router.get('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
 });
 
 // POST /api/trips — create trip (auth required)
-router.post('/', authMiddleware, verifiedMiddleware, upload.array('photos', 10), async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/', authMiddleware, upload.array('photos', 10), async (req: AuthRequest, res: Response): Promise<void> => {
     const client = await pool.connect();
     try {
         const { title, description, latitude, longitude, ladiesOnly, privacy, maxMembers } = req.body;
@@ -311,7 +311,7 @@ router.post('/:id/end', authMiddleware, async (req: AuthRequest, res: Response):
 });
 
 // POST /api/trips/:id/join — request to join trip
-router.post('/:id/join', authMiddleware, verifiedMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/:id/join', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
         const userId = req.user!.id;
@@ -457,7 +457,7 @@ router.get('/:id/join-requests', authMiddleware, async (req: AuthRequest, res: R
 });
 
 // PATCH /api/trips/:id/join-requests/:requestId — approve/deny join request
-router.patch('/:id/join-requests/:requestId', authMiddleware, verifiedMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+router.patch('/:id/join-requests/:requestId', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { id, requestId } = req.params;
         const { status } = req.body;

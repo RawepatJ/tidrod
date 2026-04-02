@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import Header from "../components/Header";
-import VerificationBanner from "../components/VerificationBanner";
 import { ToastProvider } from "../components/Toast";
 import { SessionProvider } from "../components/SessionProvider";
 
@@ -57,7 +56,6 @@ export default function RootLayout({
         <SessionProvider>
           <ToastProvider>
             <div className={'font-main flex flex-col h-screen'}>
-              <VerificationBanner />
               <Header />
               {children}
             </div>

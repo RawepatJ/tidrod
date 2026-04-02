@@ -11,7 +11,6 @@ interface User {
   gender?: string;
   avatar_url?: string | null;
   bio?: string;
-  email_verified?: boolean;
 }
 
 interface SessionContextType {

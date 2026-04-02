@@ -237,7 +237,7 @@ export function removeToken(): void {
     localStorage.removeItem('tidrod_token');
 }
 
-export function getUser(): { id: string; email: string; username: string; role: string; gender?: string; email_verified: boolean } | null {
+export function getUser(): { id: string; email: string; username: string; role: string; gender?: string } | null {
     const token = getToken();
     if (!token) return null;
     try {
@@ -247,8 +247,7 @@ export function getUser(): { id: string; email: string; username: string; role: 
             email: payload.email, 
             username: payload.username, 
             role: payload.role, 
-            gender: payload.gender,
-            email_verified: !!payload.email_verified
+            gender: payload.gender
         };
     } catch {
         return null;
