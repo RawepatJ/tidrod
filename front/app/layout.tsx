@@ -39,8 +39,8 @@ const anakotmai = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "TidRod — ชุมชนนักเดินทางและแผนที่ท่องเที่ยวยอดนิยม",
-  description: "แบ่งปันประสบการณ์การเดินทางบนแผนที่ ค้นหาสถานที่ใหม่ๆ ผ่านเพื่อนร่วมทาง แชทเรียลไทม์ และออกสำรวจเมืองไทยไปด้วยกัน",
+  title: "TidRod",
+  description: "แบ่งปันประสบการณ์การเดินทาง ค้นหาสถานที่ใหม่ๆ ด้วยติดรถ",
 };
 
 export default function RootLayout({
